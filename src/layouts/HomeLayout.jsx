@@ -6,7 +6,7 @@ const HomeLayout = () => {
     return (
         <div>
             <NavBar></NavBar>
-            <div className='pt-25 min-h-[calc(100vh-68px)]'>
+            <div>
                 <Outlet></Outlet>
             </div>
         </div>
