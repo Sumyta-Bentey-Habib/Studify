@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from 'react';
 import slide1 from "../assets/slider/slide1.jpg";
 import slide2 from "../assets/slider/slide2.jpg";
@@ -48,7 +46,7 @@ export default function Carousel() {
   useEffect(() => {
     const interval = setInterval(() => {
       nextSlider();
-    }, 2000); // change slide every 5 seconds
+    }, 2000); 
 
     return () => clearInterval(interval); 
   }, [currentSlider]); 
