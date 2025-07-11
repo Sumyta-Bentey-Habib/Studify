@@ -134,7 +134,7 @@ const LogIn = () => {
               className="w-full py-3 text-center text-white rounded-md bg-violet-500 hover:bg-violet-600 disabled:opacity-70"
               
             >
-             
+             Log In
             </button>
           </form>
 
