@@ -1,20 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
-  onAuthStateChanged,
   signInWithEmailAndPassword,
-  GoogleAuthProvider,
   signInWithPopup,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  updateProfile,
 } from "firebase/auth";
 import { auth } from "../../firebase/firebase.init";
-// import axios from "axios";
+import axios from "axios";
 import Loading from "../../components/Loading";
-import { createContext } from "react";
 
- export const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const createUser = (email, password) => {
@@ -35,24 +36,36 @@ const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     await auth.signOut();
-    // await axios.post(" https://goathlete-server-site.vercel.app/logout", {}, { withCredentials: true });
     setUser(null);
+    setRole(null);
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        try {
+          const res = await axios.get(`${import.meta.env.VITE_API_URL}/users/${currentUser.email}`);
+          if (res.data) {
+            setRole(res.data.role);
+          } else {
+            // New Google user — create with default student role
+            await axios.post(`${import.meta.env.VITE_API_URL}/users`, {
+              name: currentUser.displayName,
+              email: currentUser.email,
+              photoURL: currentUser.photoURL,
+              role: "student",
+            });
+            setRole("student");
+          }
+        } catch (err) {
+          console.error(err);
+        }
+        setUser(currentUser);
+      } else {
+        setUser(null);
+        setRole(null);
+      }
       setLoading(false);
-
-    //   if (currentUser?.email) {
-    //     const userData = { email: currentUser.email };
-    //     axios
-    //       .post(" https://goathlete-server-site.vercel.app/jwt", userData, { withCredentials: true })
-    //       .then(res => {
-    //         console.log("JWT set successfully");
-    //       })
-    //       .catch(err => console.error(err));
-    //   }
     });
 
     return () => unsubscribe();
@@ -68,6 +81,7 @@ const AuthProvider = ({ children }) => {
 
   const authInfo = {
     user,
+    role,
     loading,
     createUser,
     signInUser,
@@ -76,9 +90,7 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={authInfo}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>
   );
 };
 
