@@ -4,6 +4,7 @@ import Home from "../pages/Home";
 import ErrorPage from "../pages/ErrorPage";
 import LogIn from "../pages/LogIn";
 import RegistrationPage from "../pages/RegistrationPage";
+import Dashboard from "../components/Dashboard";
 
 export const router = createBrowserRouter([
   {
@@ -14,6 +15,11 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <Home></Home>,
+      },
+      {
+        path:"/dashboard",
+        element:<Dashboard></Dashboard>
+
       },
     ],
   },
