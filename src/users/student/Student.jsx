@@ -17,6 +17,11 @@ const Student = () => {
           </Link>
         </li>
         <li>
+          <Link to="view-materials" className="text-purple-600 hover:underline">
+            View Materials
+          </Link>
+        </li>
+        <li>
           <Link to="manage-notes" className="text-purple-600 hover:underline">
             Manage Notes
           </Link>
