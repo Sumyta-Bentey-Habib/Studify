@@ -1,34 +1,84 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter } from "react-router-dom";
 import HomeLayout from "../layouts/HomeLayout";
 import Home from "../pages/Home";
 import ErrorPage from "../pages/ErrorPage";
 import LogIn from "../pages/LogIn";
 import RegistrationPage from "../pages/RegistrationPage";
-import Dashboard from "../components/Dashboard";
+
+import DashboardLayout from "../layouts/DashboardLayout";
+
+import Admin from "../users/admin/Admin";
+import Mentor from "../users/mentor/Mentor";
+import Student from "../users/student/Student";
+
+// Admin sub-components
+import ViewAllStudyMaterials from "../users/admin/ViewAllStudyMaterials";
+import ViewAllStudySessions from "../users/admin/ViewAllStudyMaterials";
+import ViewAllUsers from "../users/admin/ViewAllUsers";
+
+// Mentor sub-components
+import CreateSession from "../users/mentor/CreateSession";
+import UploadMaterials from "../users/mentor/UploadMaterials";
+import ViewSessions from "../users/mentor/ViewSessions";
+
+// Student sub-components
+import CreateNote from "../users/student/CreateNote";
+import BookedSession from "../users/student/BookedSession";
+import ManageNotes from "../users/student/ManageNotes";
+import ViewNotes from "../users/student/ViewNotes";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <HomeLayout></HomeLayout>,
-    errorElement: <ErrorPage></ErrorPage>,
+    element: <HomeLayout />,
+    errorElement: <ErrorPage />,
     children: [
       {
         index: true,
-        element: <Home></Home>,
-      },
-      {
-        path:"/dashboard",
-        element:<Dashboard></Dashboard>
-
+        element: <Home />,
       },
     ],
   },
   {
     path: "/login",
-    element: <LogIn></LogIn>,
+    element: <LogIn />,
   },
   {
     path: "/register",
-    element: <RegistrationPage></RegistrationPage>,
+    element: <RegistrationPage />,
+  },
+  {
+    path: "/dashboard",
+    element: <DashboardLayout />,
+    children: [
+      {
+        path: "admin",
+        element: <Admin />,
+        children: [
+          { path: "view-study-materials", element: <ViewAllStudyMaterials /> },
+          { path: "view-study-sessions", element: <ViewAllStudySessions /> },
+          { path: "view-users", element: <ViewAllUsers /> },
+        ],
+      },
+      {
+        path: "mentor",
+        element: <Mentor />,
+        children: [
+          { path: "create-session", element: <CreateSession /> },
+          { path: "upload-materials", element: <UploadMaterials /> },
+          { path: "view-sessions", element: <ViewSessions /> },
+        ],
+      },
+      {
+        path: "student",
+        element: <Student />,
+        children: [
+          { path: "create-note", element: <CreateNote /> },
+          { path: "booked-session", element: <BookedSession /> },
+          { path: "manage-notes", element: <ManageNotes /> },
+          { path: "view-notes", element: <ViewNotes /> },
+        ],
+      },
+    ],
   },
 ]);
