@@ -21,11 +21,7 @@ const Student = () => {
             View Materials
           </Link>
         </li>
-        <li>
-          <Link to="manage-notes" className="text-purple-600 hover:underline">
-            Manage Notes
-          </Link>
-        </li>
+        
         <li>
           <Link to="view-notes" className="text-purple-600 hover:underline">
             View Notes

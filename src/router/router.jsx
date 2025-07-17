@@ -24,7 +24,6 @@ import ViewSessions from "../users/mentor/ViewSessions";
 // Student sub-components
 import CreateNote from "../users/student/CreateNote";
 import BookedSession from "../users/student/BookedSession";
-import ManageNotes from "../users/student/ManageNotes";
 import ViewNotes from "../users/student/ViewNotes";
 import ViewMaterials from "../users/student/ViewMaterials";
 import StudentDashboard from "../users/student/StudentDashboard";
@@ -78,7 +77,6 @@ export const router = createBrowserRouter([
         children: [
           { path: "create-note", element: <CreateNote /> },
           { path: "booked-session", element: <BookedSession /> },
-          { path: "manage-notes", element: <ManageNotes /> },
           { path: "view-notes", element: <ViewNotes /> },
           { path: "view-materials", element:<ViewMaterials></ViewMaterials> },
           { path: "view-sessions", element:<StudentDashboard></StudentDashboard> },
