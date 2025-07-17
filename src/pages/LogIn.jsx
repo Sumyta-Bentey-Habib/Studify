@@ -1,19 +1,18 @@
 import React, { useContext, useEffect, useState } from "react";
 import Lottie from "lottie-react";
-import { FcGoogle } from "react-icons/fc";
 import loginAnimation from "../assets/lottie/login.json";
-
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { NavLink } from "react-router-dom";
 import { AuthContext } from "../contexts/authcontext/AuthProvider";
+import SocialLogin from "../shared/SocialLogin";
 
 const LogIn = () => {
   useEffect(() => {
     document.title = "Login || GoAthlete";
   }, []);
 
-  const { googleLogin, signInUser } = useContext(AuthContext);
+  const { signInUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -54,29 +53,7 @@ const LogIn = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    setLoading(true);
-    googleLogin()
-      .then((result) => {
-        Swal.fire({
-          icon: "success",
-          title: "Login Successful",
-          text: `Welcome, ${result.user.displayName || "User"}!`,
-          timer: 1500,
-          showConfirmButton: false,
-        });
-        navigate("/");
-      })
-      .catch((error) => {
-        Swal.fire({
-          icon: "error",
-          title: "Login Failed",
-          text: error.message,
-        });
-      })
-      .finally(() => setLoading(false));
-  };
-
+  
   return (
     <div className="flex items-center justify-center min-h-screen px-4 ">
       <div className="flex flex-col w-full max-w-4xl overflow-hidden bg-white shadow-lg rounded-xl md:flex-row">
@@ -137,24 +114,9 @@ const LogIn = () => {
              Log In
             </button>
           </form>
+          {/* social logib */}
 
-          <div className="flex items-center gap-2">
-            <div className="flex-1 h-px bg-gray-300"></div>
-            <p className="text-sm text-gray-500">Or login with</p>
-            <div className="flex-1 h-px bg-gray-300"></div>
-          </div>
-
-          <div className="flex justify-center">
-            <button
-              onClick={handleGoogleLogin}
-              aria-label="Login with Google"
-              className="flex items-center gap-2 px-4 py-2 text-gray-800 bg-gray-100 rounded-md shadow hover:bg-gray-200 disabled:opacity-70"
-              disabled={loading}
-            >
-              <FcGoogle className="w-5 h-5" />
-              <span>Continue with Google</span>
-            </button>
-          </div>
+          <SocialLogin action="login"></SocialLogin>
 
           <p className="text-sm text-center text-gray-500">
             Don’t have an account?

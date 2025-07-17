@@ -5,17 +5,15 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   onAuthStateChanged,
-  updateProfile,
+  signOut,
 } from "firebase/auth";
 import { auth } from "../../firebase/firebase.init";
-import axios from "axios";
 import Loading from "../../components/Loading";
 
 export const AuthContext = createContext(null);
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const createUser = (email, password) => {
@@ -35,36 +33,13 @@ const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    await auth.signOut();
+    await signOut(auth);
     setUser(null);
-    setRole(null);
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        try {
-          const res = await axios.get(`${import.meta.env.VITE_API_URL}/users/${currentUser.email}`);
-          if (res.data) {
-            setRole(res.data.role);
-          } else {
-            // New Google user — create with default student role
-            await axios.post(`${import.meta.env.VITE_API_URL}/users`, {
-              name: currentUser.displayName,
-              email: currentUser.email,
-              photoURL: currentUser.photoURL,
-              role: "student",
-            });
-            setRole("student");
-          }
-        } catch (err) {
-          console.error(err);
-        }
-        setUser(currentUser);
-      } else {
-        setUser(null);
-        setRole(null);
-      }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
       setLoading(false);
     });
 
@@ -81,7 +56,6 @@ const AuthProvider = ({ children }) => {
 
   const authInfo = {
     user,
-    role,
     loading,
     createUser,
     signInUser,

@@ -2,10 +2,10 @@ import React, { useState, useContext, useEffect } from "react";
 import Swal from "sweetalert2";
 import Lottie from "lottie-react";
 import registrationAnimation from "../assets/lottie/registration.json";
-import { FcGoogle } from "react-icons/fc";
 import { AuthContext } from "../contexts/authcontext/AuthProvider";
 import { useNavigate, NavLink } from "react-router-dom";
 import { updateProfile } from "firebase/auth";
+import SocialLogin from "../shared/SocialLogin";
 
 const RegistrationPage = () => {
   useEffect(() => {
@@ -19,7 +19,7 @@ const RegistrationPage = () => {
     password: "",
   });
 
-  const { createUser, googleLogin } = useContext(AuthContext);
+  const { createUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -36,7 +36,7 @@ const RegistrationPage = () => {
     return hasUpper && hasLower && hasLength;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const { name, email, photoURL, password } = formData;
 
@@ -54,51 +54,30 @@ const RegistrationPage = () => {
       return;
     }
 
-    createUser(email, password)
-      .then((result) => {
-        return updateProfile(result.user, {
-          displayName: name,
-          photoURL: photoURL,
-        }).then(() => result.user);
-      })
-      .then((user) => {
-        Swal.fire(
-          "Success",
-          `Registration completed! Welcome, ${user.displayName}`,
-          "success"
-        );
-        setFormData({
-          name: "",
-          email: "",
-          photoURL: "",
-          password: "",
-        });
-        navigate("/");
-      })
-      .catch((error) => {
-        Swal.fire("Registration Failed", error.message, "error");
+    try {
+      const result = await createUser(email, password);
+      await updateProfile(result.user, {
+        displayName: name,
+        photoURL: photoURL,
       });
-  };
 
-  const handleGoogleLogin = () => {
-    googleLogin()
-      .then((result) => {
-        Swal.fire({
-          icon: "success",
-          title: "Login Successful",
-          text: `Welcome, ${result.user.displayName || "User"}!`,
-          timer: 1500,
-          showConfirmButton: false,
-        });
-        navigate("/");
-      })
-      .catch((error) => {
-        Swal.fire({
-          icon: "error",
-          title: "Login Failed",
-          text: error.message,
-        });
+      Swal.fire(
+        "Success",
+        `Registration completed! Welcome, ${name}!`,
+        "success"
+      );
+
+      setFormData({
+        name: "",
+        email: "",
+        photoURL: "",
+        password: "",
       });
+
+      navigate("/");
+    } catch (error) {
+      Swal.fire("Registration Failed", error.message, "error");
+    }
   };
 
   return (
@@ -189,22 +168,7 @@ const RegistrationPage = () => {
           </button>
         </form>
 
-        <div className="flex items-center gap-2">
-          <div className="flex-1 h-px bg-gray-300"></div>
-          <p className="text-sm text-gray-500">Or register with</p>
-          <div className="flex-1 h-px bg-gray-300"></div>
-        </div>
-
-        <div className="flex justify-center">
-          <button
-            onClick={handleGoogleLogin}
-            aria-label="Register with Google"
-            className="flex items-center gap-2 px-4 py-2 text-gray-800 bg-gray-100 rounded-lg shadow hover:bg-gray-200"
-          >
-            <FcGoogle className="w-5 h-5" />
-            <span>Continue with Google</span>
-          </button>
-        </div>
+        <SocialLogin action="register"></SocialLogin>
 
         <p className="text-sm text-center text-black">
           Already have an account?
