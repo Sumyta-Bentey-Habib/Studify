@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import useAxios from "../../hooks/useAxios";
+import { useAuth } from "../../contexts/authcontext/AuthProvider";
 
 const ViewMaterials = () => {
   const axios = useAxios();
+  const { user } = useAuth();
   const [materials, setMaterials] = useState([]);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const fetchMaterials = async () => {
@@ -17,9 +20,44 @@ const ViewMaterials = () => {
     fetchMaterials();
   }, [axios]);
 
+  const handleSaveMaterial = async (material) => {
+    setMessage("");
+    if (!user?.email) {
+      setMessage("You must be logged in to save materials.");
+      return;
+    }
+    try {
+      const payload = {
+        userEmail: user.email,  // important to identify user
+        materialId: material._id,
+        subjectName: material.subjectName,
+        imageUrl: material.imageUrl,
+        driveLink: material.driveLink,
+        otherLink: material.otherLink,
+        savedAt: new Date(),
+      };
+      const res = await axios.post("/student-materials", payload);
+      if (res.data.insertedId) {
+        setMessage(`Saved "${material.subjectName}" successfully!`);
+      } else {
+        setMessage("Failed to save material.");
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage("Error saving material.");
+    }
+  };
+
   return (
     <div className="p-4">
       <h2 className="mb-4 text-xl font-bold">Available Study Materials</h2>
+
+      {message && (
+        <p className={`mb-4 ${message.toLowerCase().includes("success") ? "text-green-600" : "text-red-600"}`}>
+          {message}
+        </p>
+      )}
+
       <div className="space-y-4">
         {materials.length === 0 && <p>No materials uploaded yet.</p>}
         {materials.map((material) => (
@@ -74,6 +112,13 @@ const ViewMaterials = () => {
                 </a>
               </p>
             )}
+
+            <button
+              onClick={() => handleSaveMaterial(material)}
+              className="px-4 py-2 mt-3 text-white bg-purple-600 rounded hover:bg-purple-700"
+            >
+              Save Material
+            </button>
           </div>
         ))}
       </div>

@@ -8,7 +8,7 @@ const BookedSession = () => {
   useEffect(() => {
     const fetchBookedSessions = async () => {
       try {
-        const res = await axios.get("/booked-sessions"); 
+        const res = await axios.get("/booked-sessions");
         setSessions(res.data);
       } catch (err) {
         console.error(err);
@@ -34,8 +34,16 @@ const BookedSession = () => {
               Tutor: {session.tutorName}
             </p>
             <p className="text-sm text-purple-800 dark:text-purple-200">
-              Date:{" "}
-              {new Date(session.classStartTime).toLocaleString("en-US")}
+              Student: {session.studentName}
+            </p>
+            <p className="text-sm text-purple-800 dark:text-purple-200">
+              Class Time:{" "}
+              {session.classStartTime
+                ? new Date(session.classStartTime).toLocaleString("en-US")
+                : "N/A"}
+            </p>
+            <p className="text-sm text-purple-800 dark:text-purple-200">
+              Duration: {session.duration || "N/A"}
             </p>
           </div>
         ))}

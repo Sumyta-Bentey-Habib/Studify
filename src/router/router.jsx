@@ -27,6 +27,8 @@ import BookedSession from "../users/student/BookedSession";
 import ManageNotes from "../users/student/ManageNotes";
 import ViewNotes from "../users/student/ViewNotes";
 import ViewMaterials from "../users/student/ViewMaterials";
+import StudentDashboard from "../users/student/StudentDashboard";
+import StudentMaterials from "../users/student/StudentMaterials";
 
 export const router = createBrowserRouter([
   {
@@ -79,6 +81,9 @@ export const router = createBrowserRouter([
           { path: "manage-notes", element: <ManageNotes /> },
           { path: "view-notes", element: <ViewNotes /> },
           { path: "view-materials", element:<ViewMaterials></ViewMaterials> },
+          { path: "view-sessions", element:<StudentDashboard></StudentDashboard> },
+          { path: "study-materials", element:<StudentMaterials></StudentMaterials> },
+         
         ],
       },
     ],

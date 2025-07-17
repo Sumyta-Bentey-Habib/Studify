@@ -31,6 +31,18 @@ const Student = () => {
             View Notes
           </Link>
         </li>
+        <li>
+          <Link to="view-sessions" className="text-purple-600 hover:underline">
+            view-sessions
+          </Link>
+        </li>
+       
+        <li>
+          <Link to="study-materials" className="text-purple-600 hover:underline">
+            study-materials
+          </Link>
+        </li>
+       
       </ul>
 
       <div className="p-4 mt-8 bg-white border border-purple-300 rounded shadow">
