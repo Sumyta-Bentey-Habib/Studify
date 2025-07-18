@@ -5,9 +5,15 @@ Studify is a user-centric educational platform where users are assigned the **st
 
 ---
 
+## Live Demo
+Check out the live version of Studify here:  
+[https://studify-749d1.web.app/](https://studify-749d1.web.app/)
+
+---
+
 ## Default Admin Credentials
-- **Email:** admin@studify.com
-- **Password:** 12345678Admin
+- **Email:** admin@studify.com  
+- **Password:** 12345678
 
 
 
