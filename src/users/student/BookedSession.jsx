@@ -18,36 +18,38 @@ const BookedSession = () => {
   }, [axios]);
 
   return (
-    <div className="p-4">
-      <h2 className="mb-4 text-xl font-bold">My Booked Sessions</h2>
-      <div className="space-y-4">
-        {sessions.length === 0 && <p>No sessions booked yet.</p>}
-        {sessions.map((session) => (
-          <div
-            key={session._id}
-            className="p-4 border rounded shadow bg-purple-50 dark:bg-purple-900"
-          >
-            <h3 className="font-bold text-purple-700 dark:text-purple-300">
-              {session.title}
-            </h3>
-            <p className="text-sm text-purple-800 dark:text-purple-200">
-              Tutor: {session.tutorName}
-            </p>
-            <p className="text-sm text-purple-800 dark:text-purple-200">
-              Student: {session.studentName}
-            </p>
-            <p className="text-sm text-purple-800 dark:text-purple-200">
-              Class Time:{" "}
-              {session.classStartTime
-                ? new Date(session.classStartTime).toLocaleString("en-US")
-                : "N/A"}
-            </p>
-            <p className="text-sm text-purple-800 dark:text-purple-200">
-              Duration: {session.duration || "N/A"}
-            </p>
-          </div>
-        ))}
-      </div>
+    <div className="min-h-screen p-6 bg-purple-50">
+      <h2 className="mb-6 text-2xl font-bold text-purple-800">My Booked Sessions</h2>
+
+      {sessions.length === 0 ? (
+        <p className="text-center text-purple-700">No sessions booked yet.</p>
+      ) : (
+        <div className="max-w-3xl mx-auto space-y-6">
+          {sessions.map((session) => (
+            <div
+              key={session._id}
+              className="p-6 bg-white border border-purple-200 rounded-lg shadow-md"
+            >
+              <h3 className="mb-2 text-lg font-semibold text-purple-900">{session.title}</h3>
+              <p className="text-sm text-purple-700">
+                <span className="font-medium">Tutor:</span> {session.tutorName}
+              </p>
+              <p className="text-sm text-purple-700">
+                <span className="font-medium">Student:</span> {session.studentName}
+              </p>
+              <p className="text-sm text-purple-700">
+                <span className="font-medium">Class Time:</span>{" "}
+                {session.classStartTime
+                  ? new Date(session.classStartTime).toLocaleString("en-US")
+                  : "N/A"}
+              </p>
+              <p className="text-sm text-purple-700">
+                <span className="font-medium">Duration:</span> {session.duration || "N/A"}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

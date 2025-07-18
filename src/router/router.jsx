@@ -13,7 +13,7 @@ import Student from "../users/student/Student";
 
 // Admin sub-components
 import ViewAllStudyMaterials from "../users/admin/ViewAllStudyMaterials";
-import ViewAllStudySessions from "../users/admin/ViewAllStudyMaterials";
+import ViewAllStudySessions from "../users/admin/ViewAllStudySessions"
 import ViewAllUsers from "../users/admin/ViewAllUsers";
 
 // Mentor sub-components

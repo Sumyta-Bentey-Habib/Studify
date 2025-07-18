@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import useAxios from '../../hooks/useAxios';
 import { useAuth } from '../../contexts/authcontext/AuthProvider';
+import { uploadImageToImgBB } from '../../utils/utils'; // Adjust path if needed
 
 const CreateNote = () => {
   const axios = useAxios();
@@ -8,7 +9,34 @@ const CreateNote = () => {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
   const [message, setMessage] = useState('');
+
+  const handleImageChange = (e) => {
+    setSelectedImage(e.target.files[0]);
+  };
+
+  const handleImageUpload = async () => {
+    if (!selectedImage) {
+      setMessage('Please select an image to upload.');
+      return;
+    }
+
+    setUploading(true);
+    setMessage('');
+    try {
+      const url = await uploadImageToImgBB(selectedImage);
+      setImageUrl(url);
+      setMessage('Image uploaded successfully!');
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      setMessage('Failed to upload image.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,6 +56,7 @@ const CreateNote = () => {
         userEmail: user.email,
         title: title.trim(),
         content: content.trim(),
+        imageUrl, // include image URL if uploaded
         createdAt: new Date(),
       };
 
@@ -37,6 +66,8 @@ const CreateNote = () => {
         setMessage('Note created successfully!');
         setTitle('');
         setContent('');
+        setSelectedImage(null);
+        setImageUrl('');
       } else {
         setMessage('Failed to create note.');
       }
@@ -85,6 +116,26 @@ const CreateNote = () => {
             placeholder="Write your note here..."
             required
           />
+        </div>
+
+        {/* Image Upload */}
+        <div>
+          <label className="block mb-1 font-semibold">Upload Image (optional):</label>
+          <input type="file" accept="image/*" onChange={handleImageChange} />
+          <button
+            type="button"
+            onClick={handleImageUpload}
+            disabled={uploading}
+            className="px-4 py-2 mt-2 text-white bg-purple-600 rounded hover:bg-purple-700 disabled:opacity-50"
+          >
+            {uploading ? 'Uploading...' : 'Upload Image'}
+          </button>
+          {imageUrl && (
+            <div className="mt-2">
+              <p className="text-green-600">Image uploaded successfully!</p>
+              <img src={imageUrl} alt="Uploaded" className="mt-2 rounded max-h-40" />
+            </div>
+          )}
         </div>
 
         <button

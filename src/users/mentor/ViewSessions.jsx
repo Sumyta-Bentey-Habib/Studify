@@ -6,82 +6,93 @@ import useAxios from "../../hooks/useAxios";
 const ViewSessions = () => {
   const axios = useAxios();
   const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSessions = async () => {
-      const res = await axios.get("/sessions");
-      setSessions(res.data);
+      try {
+        const res = await axios.get("/sessions");
+        setSessions(res.data);
+      } catch (err) {
+        console.error("Failed to fetch sessions:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchSessions();
   }, [axios]);
 
-  const isRegistrationOpen = (registrationEndDate) => {
-    const now = new Date();
-    const endDate = new Date(registrationEndDate);
-    return now <= endDate;
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center p-10 text-indigo-700" style={{ backgroundColor: "#F3E8FF" }}>
+        Loading sessions...
+      </div>
+    );
+  }
+
+  if (sessions.length === 0) {
+    return (
+      <p className="p-10 text-center text-indigo-700" style={{ backgroundColor: "#F3E8FF" }}>
+        No sessions available.
+      </p>
+    );
+  }
 
   return (
-    <div className="flex flex-wrap justify-center gap-6 p-6">
+    <div className="flex flex-wrap justify-center gap-6 p-6" style={{ backgroundColor: "#F3E8FF" }}>
       {sessions.map((s) => (
         <div
           key={s._id}
-          className="max-w-[350px] w-full space-y-6 rounded-lg border-b-2 border-l border-r-2 border-t
-            border-b-purple-600 border-l-purple-800 border-r-purple-600 border-t-purple-800
-            bg-purple-50 py-8 px-8 shadow-md dark:bg-purple-900"
+          className="flex flex-col justify-between p-6 transition-shadow rounded-lg shadow-md card w-80"
+          style={{ backgroundColor: "white" }}
         >
-          {/* Header: Price & Label */}
-          <div className="flex items-center justify-between">
-            <h1 className="w-[35%] text-2xl font-bold tracking-wider text-purple-900 md:text-4xl dark:text-purple-300">
-              <sup className="text-2xl font-black">$</sup>
-              {s.registrationFee === 0 ? "Free" : s.registrationFee}
-              <sub className="text-sm tracking-tight">/session</sub>
-            </h1>
-            <div className="w-[65%] rounded-bl-full rounded-tl-full bg-gradient-to-r from-purple-500 to-purple-700 px-4 py-4 md:px-10 md:py-5">
-              <h3 className="font-semibold tracking-wider text-white uppercase md:text-xl">
-                {s.title.length > 20 ? s.title.slice(0, 20) + "…" : s.title}
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3
+                className="text-lg font-semibold text-indigo-900"
+                title={s.title}
+              >
+                {s.title.length > 25 ? s.title.slice(0, 25) + "…" : s.title}
               </h3>
+              <p className="mt-1 text-sm text-indigo-600">
+                Tutor: <span className="font-medium">{s.tutorName}</span>
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-xl font-bold text-indigo-700">
+                {s.registrationFee === 0 ? (
+                  <span>Free</span>
+                ) : (
+                  <>
+                    <sup className="text-sm">$</sup>
+                    {s.registrationFee}
+                    <sub className="text-xs">/session</sub>
+                  </>
+                )}
+              </p>
             </div>
           </div>
 
-          {/* Tutor */}
-          <p className="font-semibold text-purple-700 dark:text-purple-300">
-            Tutor: {s.tutorName}
-          </p>
-
-          {/* Description with controlled height and overflow */}
+          {/* Description */}
           <p
-            className="max-h-[5rem] overflow-hidden text-sm text-purple-800 dark:text-purple-300"
+            className="mb-4 text-sm text-indigo-700 line-clamp-3"
             title={s.description}
           >
-            {s.description}
+            {s.description || "No description available."}
           </p>
 
-          {/* Session info list */}
-          <ul className="space-y-3 text-sm text-purple-900 dark:text-purple-300">
+          {/* Info */}
+          <ul className="mb-6 space-y-1 text-xs text-indigo-600">
             <li>⭐ Average Rating: {s.averageRating ?? "N/A"}</li>
             <li>Duration: {s.duration || "N/A"}</li>
             <li>
               Registration Ends:{" "}
-              {new Date(s.registrationEndDate).toLocaleDateString("en-US")}
+              <time dateTime={s.registrationEndDate}>
+                {new Date(s.registrationEndDate).toLocaleDateString()}
+              </time>
             </li>
           </ul>
-
-          {/* Button */}
-          <div>
-            {isRegistrationOpen(s.registrationEndDate) ? (
-              <button className="w-full py-4 text-lg font-semibold tracking-wider text-white uppercase transition-colors rounded-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900">
-                Book Now
-              </button>
-            ) : (
-              <button
-                disabled
-                className="w-full py-4 text-lg font-semibold tracking-wider text-gray-700 uppercase bg-gray-400 rounded-full cursor-not-allowed"
-              >
-                Registration Closed
-              </button>
-            )}
-          </div>
         </div>
       ))}
     </div>

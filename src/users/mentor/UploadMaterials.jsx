@@ -1,19 +1,36 @@
 import React, { useState } from "react";
-import { uploadImageToImgBB } from "../../utils/utils"; 
+import { uploadImageToImgBB } from "../../utils/utils";
 import useAxios from "../../hooks/useAxios";
 
 const UploadMaterials = () => {
   const axios = useAxios();
 
   const [selectedImage, setSelectedImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [driveLink, setDriveLink] = useState("");
   const [otherLink, setOtherLink] = useState("");
   const [subjectName, setSubjectName] = useState("");
   const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
-  // Upload to ImgBB utility
+  // Preview selected image immediately
+  const handleSelectImage = (file) => {
+    setSelectedImage(file);
+    setError("");
+    setSuccessMsg("");
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreviewImage(null);
+    }
+  };
+
   const handleUploadImage = async () => {
     if (!selectedImage) {
       setError("Please select an image first.");
@@ -21,10 +38,11 @@ const UploadMaterials = () => {
     }
     setUploading(true);
     setError("");
+    setSuccessMsg("");
     try {
       const url = await uploadImageToImgBB(selectedImage);
       setImageUrl(url);
-      alert("Image uploaded successfully!");
+      setSuccessMsg("Image uploaded successfully!");
     } catch (err) {
       setError(err.message || "Image upload failed.");
     } finally {
@@ -32,10 +50,16 @@ const UploadMaterials = () => {
     }
   };
 
-  // Submit all data to your backend
   const handleSubmit = async () => {
-    if (!subjectName) {
-      alert("Please enter a subject name.");
+    setError("");
+    setSuccessMsg("");
+
+    if (!subjectName.trim()) {
+      setError("Please enter a subject name.");
+      return;
+    }
+    if (!imageUrl) {
+      setError("Please upload an image before submitting.");
       return;
     }
 
@@ -49,94 +73,100 @@ const UploadMaterials = () => {
     try {
       const res = await axios.post("/materials", payload);
       if (res.data.insertedId || res.data.acknowledged) {
-        alert("Material submitted successfully!");
+        setSuccessMsg("Material submitted successfully!");
         // reset form
         setSelectedImage(null);
+        setPreviewImage(null);
         setImageUrl("");
         setDriveLink("");
         setOtherLink("");
         setSubjectName("");
       } else {
-        alert("Error: Material not saved.");
+        setError("Error: Material not saved.");
       }
     } catch (err) {
       console.error(err);
-      alert("Error submitting material.");
+      setError("Error submitting material.");
     }
   };
 
   return (
-    <div className="max-w-md p-4 mx-auto space-y-4">
-      <h2 className="text-xl font-bold">Upload Study Materials</h2>
+    <div className="max-w-md p-6 mx-auto space-y-6 bg-white rounded shadow-md">
+      <h2 className="text-2xl font-bold text-purple-800">Upload Study Materials</h2>
+
+      {error && <p className="font-semibold text-red-600">{error}</p>}
+      {successMsg && <p className="font-semibold text-green-600">{successMsg}</p>}
 
       {/* Subject Name */}
       <div>
-        <label className="block mb-1 font-semibold">Subject Name:</label>
+        <label className="block mb-2 font-semibold">Subject Name:</label>
         <input
           type="text"
           placeholder="e.g. Mathematics"
           value={subjectName}
           onChange={(e) => setSubjectName(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full input input-bordered"
         />
       </div>
 
       {/* Image Upload */}
       <div>
-        <label className="block mb-1 font-semibold">Upload Image:</label>
-        <input type="file" accept="image/*" onChange={(e) => setSelectedImage(e.target.files[0])} />
+        <label className="block mb-2 font-semibold">Select Image:</label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => handleSelectImage(e.target.files[0])}
+          className="w-full file-input file-input-bordered"
+        />
+        {previewImage && (
+          <img
+            src={previewImage}
+            alt="Preview"
+            className="object-contain w-full mt-4 rounded max-h-48"
+          />
+        )}
+
         <button
           onClick={handleUploadImage}
-          disabled={uploading}
-          className="px-4 py-2 mt-2 text-white bg-purple-700 rounded disabled:opacity-50"
+          disabled={uploading || !selectedImage}
+          className="w-full mt-4 btn btn-primary"
         >
           {uploading ? "Uploading..." : "Upload Image"}
         </button>
-        {error && <p className="mt-1 text-red-600">{error}</p>}
-        {imageUrl && (
-          <div className="mt-2">
-            <p className="text-green-600">Uploaded Image URL:</p>
-            <a href={imageUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline break-all">
-              {imageUrl}
-            </a>
-            <img src={imageUrl} alt="Uploaded" className="h-auto max-w-full mt-2 rounded" />
-          </div>
-        )}
       </div>
 
-      {/* Google Drive link */}
+      {/* Google Drive Link */}
       <div>
-        <label className="block mb-1 font-semibold">Google Drive Link:</label>
+        <label className="block mb-2 font-semibold">Google Drive Link:</label>
         <input
           type="url"
           placeholder="https://drive.google.com/..."
           value={driveLink}
           onChange={(e) => setDriveLink(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full input input-bordered"
         />
       </div>
 
-      {/* Other link */}
+      {/* Other Link */}
       <div>
-        <label className="block mb-1 font-semibold">Other Link (e.g. Dropbox):</label>
+        <label className="block mb-2 font-semibold">Other Link (e.g. Dropbox):</label>
         <input
           type="url"
           placeholder="https://example.com/..."
           value={otherLink}
           onChange={(e) => setOtherLink(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full input input-bordered"
         />
       </div>
 
-      {/* Submit */}
-      <div>
-        <button
-          onClick={handleSubmit}
-          className="w-full py-3 text-white bg-purple-700 rounded hover:bg-purple-800"
-        >
-          Submit Materials
-        </button>
-      </div>
+      {/* Submit Button */}
+      <button
+        onClick={handleSubmit}
+        disabled={!imageUrl || !subjectName.trim()}
+        className="w-full btn btn-primary"
+      >
+        Submit Materials
+      </button>
     </div>
   );
 };

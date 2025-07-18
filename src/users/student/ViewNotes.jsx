@@ -33,27 +33,47 @@ const ViewNotes = () => {
     fetchNotes();
   }, [axios, user]);
 
-  if (loading) return <p>Loading notes...</p>;
+  if (loading)
+    return (
+      <p className="p-6 text-center text-indigo-700" style={{ backgroundColor: '#F3E8FF' }}>
+        Loading notes...
+      </p>
+    );
 
   if (!user?.email)
-    return <p className="text-red-600">Please log in to view your notes.</p>;
+    return (
+      <p className="p-6 text-center text-red-600" style={{ backgroundColor: '#F3E8FF' }}>
+        Please log in to view your notes.
+      </p>
+    );
 
   return (
-    <div className="max-w-3xl p-4 mx-auto">
-      <h2 className="mb-4 text-xl font-bold">My Notes</h2>
+    <div
+      className="max-w-3xl p-6 mx-auto rounded shadow"
+      style={{ backgroundColor: '#F3E8FF' }}
+    >
+      <h2 className="mb-6 text-2xl font-bold text-indigo-900">My Notes</h2>
 
-      {message && <p className={`mb-4 ${message.includes('Failed') ? 'text-red-600' : 'text-gray-700'}`}>{message}</p>}
+      {message && (
+        <p
+          className={`mb-6 ${
+            message.includes('Failed') ? 'text-red-600' : 'text-indigo-700'
+          }`}
+        >
+          {message}
+        </p>
+      )}
 
       {notes.length > 0 && (
-        <ul className="space-y-4">
+        <ul className="space-y-6">
           {notes.map((note) => (
             <li
               key={note._id || note.insertedId}
-              className="p-4 border rounded shadow bg-purple-50 dark:bg-purple-900"
+              className="p-6 border border-indigo-300 rounded shadow bg-indigo-50"
             >
-              <h3 className="font-semibold text-purple-700 dark:text-purple-300">{note.title}</h3>
-              <p className="mt-2 whitespace-pre-wrap">{note.content}</p>
-              <small className="block mt-2 text-gray-500">
+              <h3 className="font-semibold text-indigo-900">{note.title}</h3>
+              <p className="mt-3 text-indigo-800 whitespace-pre-wrap">{note.content}</p>
+              <small className="block mt-4 text-indigo-500">
                 Created at: {new Date(note.createdAt).toLocaleString()}
               </small>
             </li>
