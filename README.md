@@ -9,7 +9,7 @@ Studify is a user-centric educational platform where users are assigned the **st
 - **Email:** admin@studify.com
 - **Password:** 12345678Admin
 
-> The admin user is created by default with these credentials. Please change the password after first login.
+
 
 ---
 
