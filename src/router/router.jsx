@@ -33,7 +33,7 @@ import BeTutorRequest from "../users/student/BeTutorRequest";
 
 import ProfilePage from "../pages/ProfilePage";
 import SessionDetails from "../components/SessionDetails";
-
+import PaymentSuccess from "../components/PaymentSuccess";
 
 export const router = createBrowserRouter([
   {
@@ -96,10 +96,6 @@ export const router = createBrowserRouter([
     ],
     
   },
-  {
-    path:"/dashboard/profile",
-    element:<ProfilePage></ProfilePage>
-
-
-  },
+  {path:"/dashboard/profile", element:<ProfilePage></ProfilePage>},
+  { path: "payment-success", element: <PaymentSuccess /> },
 ]);
