@@ -1,17 +1,12 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import Lottie from "lottie-react";
 import loginAnimation from "../assets/lottie/login.json";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 import Swal from "sweetalert2";
-import { NavLink } from "react-router-dom";
 import { AuthContext } from "../contexts/authcontext/AuthProvider";
 import SocialLogin from "../shared/SocialLogin";
 
 const LogIn = () => {
-  useEffect(() => {
-    document.title = "Login || GoAthlete";
-  }, []);
-
   const { signInUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -33,14 +28,16 @@ const LogIn = () => {
 
     setLoading(true);
     try {
-      const result = await signInUser(email, password);
+      await signInUser(email, password);
+
       Swal.fire({
         icon: "success",
         title: "Login Successful",
-        text: `Welcome, ${result.user.email}!`,
+        text: `Welcome, ${email}!`,
         timer: 1500,
         showConfirmButton: false,
       });
+
       navigate("/");
     } catch (error) {
       Swal.fire({
@@ -53,7 +50,6 @@ const LogIn = () => {
     }
   };
 
-  
   return (
     <div className="flex items-center justify-center min-h-screen px-4 ">
       <div className="flex flex-col w-full max-w-4xl overflow-hidden bg-white shadow-lg rounded-xl md:flex-row">
@@ -67,9 +63,7 @@ const LogIn = () => {
         </div>
 
         <div className="w-full p-8 space-y-6 md:w-1/2">
-          <h1 className="text-3xl font-bold text-center text-gray-800">
-            Login
-          </h1>
+          <h1 className="text-3xl font-bold text-center text-gray-800">Login</h1>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm text-gray-600">
@@ -83,7 +77,6 @@ const LogIn = () => {
                 value={formData.email}
                 onChange={handleChange}
                 className="w-full px-4 py-3 text-gray-800 bg-white border border-gray-300 rounded-md focus:ring focus:ring-violet-300"
-                
               />
             </div>
             <div>
@@ -109,14 +102,14 @@ const LogIn = () => {
             <button
               type="submit"
               className="w-full py-3 text-center text-white rounded-md bg-violet-500 hover:bg-violet-600 disabled:opacity-70"
-              
+              disabled={loading}
             >
-             Log In
+              {loading ? "Logging In..." : "Log In"}
             </button>
           </form>
-          {/* social logib */}
 
-          <SocialLogin action="login"></SocialLogin>
+          {/* social login */}
+          <SocialLogin action="login" />
 
           <p className="text-sm text-center text-gray-500">
             Don’t have an account?
@@ -124,12 +117,13 @@ const LogIn = () => {
               to="/register"
               className="ml-1 text-violet-600 hover:underline"
             >
-              Sign up  
+              Sign up
             </NavLink>
             <br />
             <br />
-            <NavLink to="/" className="ml-1 text-violet-600 hover:underline">Go Home</NavLink>
-
+            <NavLink to="/" className="ml-1 text-violet-600 hover:underline">
+              Go Home
+            </NavLink>
           </p>
         </div>
       </div>

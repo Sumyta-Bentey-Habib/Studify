@@ -46,7 +46,6 @@ const RegistrationPage = () => {
       return;
     }
 
-    // Disallow name = "N/A" or empty/whitespace-only name
     if (name.trim().toUpperCase() === "N/A" || name.trim().length === 0) {
       Swal.fire("Error", "Please enter a valid name.", "error");
       return;
@@ -65,18 +64,17 @@ const RegistrationPage = () => {
       // Create user in Firebase Auth
       const result = await createUser(email, password);
 
-      // Update Firebase profile with displayName and photoURL
+      // Update Firebase profile
       await updateProfile(result.user, {
         displayName: name,
         photoURL: photoURL,
       });
 
-      // Save user info to backend database
+      // Save user to backend (backend will assign role automatically)
       await axios.post("http://localhost:3000/users", {
         name,
         email,
         photoURL,
-        role: "student",
       });
 
       Swal.fire(
@@ -95,7 +93,11 @@ const RegistrationPage = () => {
       navigate("/");
     } catch (error) {
       console.error("Registration error:", error);
-      Swal.fire("Registration Failed", error.message || "Error occurred", "error");
+      Swal.fire(
+        "Registration Failed",
+        error.message || "Error occurred",
+        "error"
+      );
     }
   };
 
@@ -114,7 +116,9 @@ const RegistrationPage = () => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="name" className="block text-sm text-black">Name</label>
+            <label htmlFor="name" className="block text-sm text-black">
+              Name
+            </label>
             <input
               type="text"
               name="name"
@@ -128,7 +132,9 @@ const RegistrationPage = () => {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm text-black">Email</label>
+            <label htmlFor="email" className="block text-sm text-black">
+              Email
+            </label>
             <input
               type="email"
               name="email"
@@ -142,7 +148,9 @@ const RegistrationPage = () => {
           </div>
 
           <div>
-            <label htmlFor="photoURL" className="block text-sm text-black">Profile Picture URL</label>
+            <label htmlFor="photoURL" className="block text-sm text-black">
+              Profile Picture URL
+            </label>
             <input
               type="text"
               name="photoURL"
@@ -156,7 +164,9 @@ const RegistrationPage = () => {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm text-black">Password</label>
+            <label htmlFor="password" className="block text-sm text-black">
+              Password
+            </label>
             <input
               type="password"
               name="password"
