@@ -1,10 +1,12 @@
 import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/authcontext/AuthProvider";
 
 const ProfilePage = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-  // Get user initials for avatar fallback
+  
   const initials = user?.displayName
     ? user.displayName
         .split(" ")
@@ -12,6 +14,17 @@ const ProfilePage = () => {
         .join("")
         .toUpperCase()
     : "U";
+
+ 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/");
+    } catch (err) {
+      console.error("Logout failed:", err);
+    
+    }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen">
@@ -39,13 +52,22 @@ const ProfilePage = () => {
           {user?.email || "No email provided"}
         </p>
 
-        {/* Logout Button */}
-        <button
-          onClick={logout}
-          className="w-full px-6 py-3 font-semibold text-white transition duration-300 bg-purple-600 rounded-full shadow hover:bg-purple-700"
-        >
-          Logout
-        </button>
+        {/* Buttons */}
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={handleLogout}
+            className="w-full px-6 py-3 font-semibold text-white transition duration-300 bg-purple-600 rounded-full shadow hover:bg-purple-700"
+          >
+            Logout
+          </button>
+
+          <Link
+            to="/"
+            className="inline-block w-full px-6 py-3 font-semibold text-center text-purple-700 bg-purple-100 rounded-full hover:bg-purple-200"
+          >
+            Return Home
+          </Link>
+        </div>
       </div>
     </div>
   );

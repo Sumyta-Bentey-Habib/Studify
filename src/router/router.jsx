@@ -15,6 +15,7 @@ import Student from "../users/student/Student";
 import ViewAllStudyMaterials from "../users/admin/ViewAllStudyMaterials";
 import ViewAllStudySessions from "../users/admin/ViewAllStudySessions"
 import ViewAllUsers from "../users/admin/ViewAllUsers";
+import AdminUpgradeRequests from "../users/admin/AdminUpgradeRequests";
 
 // Mentor sub-components
 import CreateSession from "../users/mentor/CreateSession";
@@ -28,8 +29,10 @@ import ViewNotes from "../users/student/ViewNotes";
 import ViewMaterials from "../users/student/ViewMaterials";
 import StudentDashboard from "../users/student/StudentDashboard";
 import StudentMaterials from "../users/student/StudentMaterials";
+import BeTutorRequest from "../users/student/BeTutorRequest";
 
 import ProfilePage from "../pages/ProfilePage";
+
 
 export const router = createBrowserRouter([
   {
@@ -62,6 +65,7 @@ export const router = createBrowserRouter([
           { path: "view-study-materials", element: <ViewAllStudyMaterials /> },
           { path: "view-study-sessions", element: <ViewAllStudySessions /> },
           { path: "view-users", element: <ViewAllUsers /> },
+          { path: "upgrade-the-user", element: <AdminUpgradeRequests></AdminUpgradeRequests> },
         ],
       },
       {
@@ -83,6 +87,7 @@ export const router = createBrowserRouter([
           { path: "view-materials", element:<ViewMaterials></ViewMaterials> },
           { path: "view-sessions", element:<StudentDashboard></StudentDashboard> },
           { path: "study-materials", element:<StudentMaterials></StudentMaterials> },
+          { path: "sent-request", element:<BeTutorRequest></BeTutorRequest> },
          
         ],
       },

@@ -3,20 +3,15 @@ export async function uploadImageToImgBB(imageFile) {
   const formData = new FormData();
   formData.append("image", imageFile);
 
-  try {
-    const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-      method: "POST",
-      body: formData,
-    });
-    const data = await response.json();
+  const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+    method: "POST",
+    body: formData,
+  });
 
-    if (data.success) {
-      return data.data.url; 
-    } else {
-      throw new Error(data.error.message || "Image upload failed");
-    }
-  } catch (error) {
-    console.error("ImgBB upload error:", error);
-    throw error;
+  const data = await response.json();
+  if (data.success) {
+    return data.data.url;
+  } else {
+    throw new Error(data.error?.message || "Image upload failed");
   }
 }

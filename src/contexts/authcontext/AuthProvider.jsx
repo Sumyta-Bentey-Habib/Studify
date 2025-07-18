@@ -44,7 +44,6 @@ const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         try {
-          // Try to get user from backend by email
           const res = await axios.get(`/users/${currentUser.email}`);
           const dbUser = res.data;
 
@@ -56,25 +55,20 @@ const AuthProvider = ({ children }) => {
           });
         } catch (error) {
           if (error.response?.status === 404) {
-            // User not found - create it
             try {
               await axios.post("/users", {
                 name: currentUser.displayName || "N/A",
                 email: currentUser.email,
               });
-
-              // After creation, get the user again
               const res = await axios.get(`/users/${currentUser.email}`);
               const dbUser = res.data;
-
               setUser({
                 uid: currentUser.uid,
                 email: currentUser.email,
                 displayName: currentUser.displayName,
                 role: (dbUser.role || "student").toLowerCase().trim(),
               });
-            } catch (postError) {
-              console.error("Error creating user:", postError);
+            } catch {
               setUser({
                 uid: currentUser.uid,
                 email: currentUser.email,
@@ -83,7 +77,6 @@ const AuthProvider = ({ children }) => {
               });
             }
           } else {
-            console.error("Error fetching user:", error);
             setUser({
               uid: currentUser.uid,
               email: currentUser.email,

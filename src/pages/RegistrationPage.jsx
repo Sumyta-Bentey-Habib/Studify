@@ -6,6 +6,7 @@ import { AuthContext } from "../contexts/authcontext/AuthProvider";
 import { useNavigate, NavLink } from "react-router-dom";
 import { updateProfile } from "firebase/auth";
 import SocialLogin from "../shared/SocialLogin";
+import axios from "axios";
 
 const RegistrationPage = () => {
   useEffect(() => {
@@ -45,6 +46,12 @@ const RegistrationPage = () => {
       return;
     }
 
+    // Disallow name = "N/A" or empty/whitespace-only name
+    if (name.trim().toUpperCase() === "N/A" || name.trim().length === 0) {
+      Swal.fire("Error", "Please enter a valid name.", "error");
+      return;
+    }
+
     if (!validatePassword(password)) {
       Swal.fire(
         "Weak Password",
@@ -55,10 +62,21 @@ const RegistrationPage = () => {
     }
 
     try {
+      // Create user in Firebase Auth
       const result = await createUser(email, password);
+
+      // Update Firebase profile with displayName and photoURL
       await updateProfile(result.user, {
         displayName: name,
         photoURL: photoURL,
+      });
+
+      // Save user info to backend database
+      await axios.post("http://localhost:3000/users", {
+        name,
+        email,
+        photoURL,
+        role: "student",
       });
 
       Swal.fire(
@@ -76,13 +94,13 @@ const RegistrationPage = () => {
 
       navigate("/");
     } catch (error) {
-      Swal.fire("Registration Failed", error.message, "error");
+      console.error("Registration error:", error);
+      Swal.fire("Registration Failed", error.message || "Error occurred", "error");
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-10 md:flex-row bg-gray-50">
-      {/* Animation section */}
       <div className="flex justify-center w-full mb-10 md:w-1/2 md:mb-0">
         <Lottie
           animationData={registrationAnimation}
@@ -91,15 +109,12 @@ const RegistrationPage = () => {
         />
       </div>
 
-      {/* Form section */}
       <div className="w-full max-w-md p-8 space-y-6 bg-white shadow-xl md:w-1/2 rounded-2xl">
         <h1 className="text-3xl font-bold text-center text-black">Register</h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="name" className="block text-sm text-black">
-              Name
-            </label>
+            <label htmlFor="name" className="block text-sm text-black">Name</label>
             <input
               type="text"
               name="name"
@@ -108,13 +123,12 @@ const RegistrationPage = () => {
               value={formData.name}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-400"
+              required
             />
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm text-black">
-              Email
-            </label>
+            <label htmlFor="email" className="block text-sm text-black">Email</label>
             <input
               type="email"
               name="email"
@@ -123,13 +137,12 @@ const RegistrationPage = () => {
               value={formData.email}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-400"
+              required
             />
           </div>
 
           <div>
-            <label htmlFor="photoURL" className="block text-sm text-black">
-              Profile Picture URL
-            </label>
+            <label htmlFor="photoURL" className="block text-sm text-black">Profile Picture URL</label>
             <input
               type="text"
               name="photoURL"
@@ -138,13 +151,12 @@ const RegistrationPage = () => {
               value={formData.photoURL}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-400"
+              required
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm text-black">
-              Password
-            </label>
+            <label htmlFor="password" className="block text-sm text-black">Password</label>
             <input
               type="password"
               name="password"
@@ -153,10 +165,10 @@ const RegistrationPage = () => {
               value={formData.password}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-400"
+              required
             />
             <p className="mt-1 text-xs text-black">
-              Must be at least 6 characters, with uppercase and lowercase
-              letters.
+              Must be at least 6 characters, with uppercase and lowercase letters.
             </p>
           </div>
 
@@ -168,7 +180,7 @@ const RegistrationPage = () => {
           </button>
         </form>
 
-        <SocialLogin action="register"></SocialLogin>
+        <SocialLogin action="register" />
 
         <p className="text-sm text-center text-black">
           Already have an account?

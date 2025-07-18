@@ -1,56 +1,78 @@
 import React, { useEffect, useState } from "react";
 import useAxios from "../../hooks/useAxios";
+import Swal from "sweetalert2";
 
 const ViewAllUsers = () => {
   const axios = useAxios();
   const [users, setUsers] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
 
   useEffect(() => {
-    fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchData();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchData = async () => {
     try {
-      const res = await axios.get("/users");
-      setUsers(res.data);
-      setMessage(res.data.length === 0 ? "No users found." : "");
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-      setMessage("Failed to load users.");
+      const [usersRes, requestsRes] = await Promise.all([
+        axios.get("/users"),
+        axios.get("/admin/upgrade-requests"),
+      ]);
+      setUsers(usersRes.data);
+      setRequests(requestsRes.data);
+    } catch (err) {
+      console.error(err);
+      toast("Failed to load data", "error");
     } finally {
       setLoading(false);
     }
   };
 
+  const toast = (msg, icon = "success") => {
+    Swal.fire({
+      toast: true,
+      position: "top-end",
+      icon: icon,
+      title: msg,
+      showConfirmButton: false,
+      timer: 2500,
+    });
+  };
+
   const handleRoleChange = async (userId, newRole) => {
     try {
       await axios.patch(`/users/${userId}/role`, { role: newRole });
-      // Option 1: Re-fetch all users
-      // await fetchUsers();
-
-      // Option 2: Update local state
       setUsers((prev) =>
-        prev.map((u) =>
-          u._id === userId ? { ...u, role: newRole } : u
+        prev.map((u) => (u._id === userId ? { ...u, role: newRole } : u))
+      );
+      toast("Role updated!");
+    } catch (err) {
+      console.error(err);
+      toast("Failed to update role", "error");
+    }
+  };
+
+  const approveRequest = async (requestId, userId) => {
+    try {
+      await axios.post(`/admin/upgrade-requests/${requestId}/approve`);
+      await handleRoleChange(userId, "tutor");
+      setRequests((prev) =>
+        prev.map((r) =>
+          r._id === requestId ? { ...r, status: "approved" } : r
         )
       );
-      setMessage("Role updated successfully!");
-    } catch (error) {
-      console.error("Failed to update role:", error);
-      setMessage("Failed to update role.");
+      toast("Request approved & role updated!");
+    } catch (err) {
+      console.error(err);
+      toast("Failed to approve request", "error");
     }
   };
 
   if (loading) return <p>Loading users...</p>;
 
-  // Pagination calculations
   const totalPages = Math.ceil(users.length / usersPerPage);
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
@@ -61,19 +83,12 @@ const ViewAllUsers = () => {
     setCurrentPage(page);
   };
 
-  return (
-    <div className="max-w-5xl p-4 mx-auto">
-      <h2 className="mb-6 text-2xl font-bold text-purple-800">All Users</h2>
+  const getUserRequest = (userId) =>
+    requests.find((r) => r.userId === userId);
 
-      {message && (
-        <p
-          className={`mb-4 ${
-            message.includes("Failed") ? "text-red-600" : "text-green-600"
-          }`}
-        >
-          {message}
-        </p>
-      )}
+  return (
+    <div className="max-w-6xl p-4 mx-auto">
+      <h2 className="mb-6 text-2xl font-bold text-purple-800">All Users</h2>
 
       {users.length > 0 && (
         <>
@@ -85,29 +100,60 @@ const ViewAllUsers = () => {
                   <th>Name</th>
                   <th>Email</th>
                   <th>Role</th>
+                  <th>Upgrade Request</th>
                 </tr>
               </thead>
               <tbody>
-                {currentUsers.map((user, idx) => (
-                  <tr key={user._id} className="hover:bg-purple-50">
-                    <td>{indexOfFirstUser + idx + 1}</td>
-                    <td>{user.name || "N/A"}</td>
-                    <td>{user.email || "N/A"}</td>
-                    <td>
-                      <select
-                        value={user.role || "student"}
-                        onChange={(e) =>
-                          handleRoleChange(user._id, e.target.value)
-                        }
-                        className="px-2 py-1 border border-purple-300 rounded"
-                      >
-                        <option value="student">Student</option>
-                        <option value="tutor">Tutor</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </td>
-                  </tr>
-                ))}
+                {currentUsers.map((user, idx) => {
+                  const userRequest = getUserRequest(user._id);
+                  return (
+                    <tr key={user._id} className="hover:bg-purple-50">
+                      <td>{indexOfFirstUser + idx + 1}</td>
+                      <td>{user.name || "N/A"}</td>
+                      <td>{user.email || "N/A"}</td>
+                      <td>
+                        <select
+                          value={user.role || "student"}
+                          onChange={(e) =>
+                            handleRoleChange(user._id, e.target.value)
+                          }
+                          className="px-2 py-1 border border-purple-300 rounded"
+                        >
+                          <option value="student">Student</option>
+                          <option value="tutor">Tutor</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </td>
+                      <td>
+                        {userRequest ? (
+                          <div>
+                            <span
+                              className={`px-2 py-1 rounded text-sm ${
+                                userRequest.status === "approved"
+                                  ? "bg-green-200 text-green-800"
+                                  : "bg-yellow-200 text-yellow-800"
+                              }`}
+                            >
+                              {userRequest.status}
+                            </span>
+                            {userRequest.status === "pending" && (
+                              <button
+                                onClick={() =>
+                                  approveRequest(userRequest._id, user._id)
+                                }
+                                className="px-2 py-1 ml-2 text-xs text-white bg-purple-600 rounded hover:bg-purple-700"
+                              >
+                                Approve
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
