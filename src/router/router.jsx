@@ -32,6 +32,7 @@ import StudentMaterials from "../users/student/StudentMaterials";
 import BeTutorRequest from "../users/student/BeTutorRequest";
 
 import ProfilePage from "../pages/ProfilePage";
+import SessionDetails from "../components/SessionDetails";
 
 
 export const router = createBrowserRouter([
@@ -86,6 +87,7 @@ export const router = createBrowserRouter([
           { path: "view-notes", element: <ViewNotes /> },
           { path: "view-materials", element:<ViewMaterials></ViewMaterials> },
           { path: "view-sessions", element:<StudySessionsView></StudySessionsView> },
+          {path: "view-sessions/:id", element: <SessionDetails />},
           { path: "study-materials", element:<StudentMaterials></StudentMaterials> },
           { path: "sent-request", element:<BeTutorRequest></BeTutorRequest> },
          

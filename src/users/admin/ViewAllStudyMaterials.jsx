@@ -24,6 +24,19 @@ const ViewAllStudyMaterials = () => {
     fetchMaterials();
   }, [axios]);
 
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this material?")) return;
+
+    try {
+      await axios.delete(`/materials/${id}`);
+      setMaterials((prev) => prev.filter((m) => m._id !== id));
+      setMessage("Material deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete material:", error);
+      setMessage("Failed to delete material.");
+    }
+  };
+
   if (loading) return <p>Loading study materials...</p>;
 
   return (
@@ -31,7 +44,7 @@ const ViewAllStudyMaterials = () => {
       <h2 className="mb-6 text-2xl font-bold text-purple-800">All Study Materials</h2>
 
       {message && (
-        <p className={`mb-4 ${message.includes("Failed") ? "text-red-600" : "text-gray-700"}`}>
+        <p className={`mb-4 ${message.includes("Failed") ? "text-red-600" : "text-green-700"}`}>
           {message}
         </p>
       )}
@@ -97,6 +110,13 @@ const ViewAllStudyMaterials = () => {
                   <p className="italic text-gray-500">No other link.</p>
                 )}
               </div>
+
+              <button
+                onClick={() => handleDelete(material._id)}
+                className="mt-4 btn btn-sm btn-error"
+              >
+                Delete
+              </button>
             </div>
           </div>
         ))}

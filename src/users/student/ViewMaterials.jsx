@@ -21,7 +21,7 @@ const ViewMaterials = () => {
           title: "Error",
           text: "Failed to load materials.",
           background: "#F3E8FF",
-          confirmButtonColor: "#7C3AED", // lavender-ish purple
+          confirmButtonColor: "#7C3AED",
           color: "#4C1D95",
         });
       } finally {
@@ -45,7 +45,7 @@ const ViewMaterials = () => {
     }
     try {
       const payload = {
-        userEmail: user.email, // important to identify user
+        userEmail: user.email,
         materialId: material._id,
         subjectName: material.subjectName,
         imageUrl: material.imageUrl,
@@ -86,6 +86,43 @@ const ViewMaterials = () => {
     }
   };
 
+  const handleDeleteMaterial = async (id) => {
+    const confirm = await Swal.fire({
+      title: "Delete this material?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#7C3AED",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await axios.delete(`/materials/${id}`);
+      setMaterials((prev) => prev.filter((m) => m._id !== id));
+      Swal.fire({
+        icon: "success",
+        title: "Deleted",
+        text: "Material deleted successfully.",
+        background: "#F3E8FF",
+        confirmButtonColor: "#7C3AED",
+        color: "#4C1D95",
+      });
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to delete material.",
+        background: "#F3E8FF",
+        confirmButtonColor: "#7C3AED",
+        color: "#4C1D95",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <p
@@ -99,7 +136,9 @@ const ViewMaterials = () => {
 
   return (
     <div className="p-4" style={{ backgroundColor: "#F3E8FF" }}>
-      <h2 className="mb-4 text-xl font-bold text-indigo-800">Available Study Materials</h2>
+      <h2 className="mb-4 text-xl font-bold text-indigo-800">
+        Available Study Materials
+      </h2>
 
       {materials.length === 0 ? (
         <p className="text-indigo-700">No materials uploaded yet.</p>
@@ -159,12 +198,22 @@ const ViewMaterials = () => {
                 </p>
               )}
 
-              <button
-                onClick={() => handleSaveMaterial(material)}
-                className="px-4 py-2 mt-3 text-white bg-purple-600 rounded hover:bg-purple-700"
-              >
-                Save Material
-              </button>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <button
+                  onClick={() => handleSaveMaterial(material)}
+                  className="px-4 py-2 text-white bg-purple-600 rounded hover:bg-purple-700"
+                >
+                  Save Material
+                </button>
+
+                {/* Delete Button */}
+                <button
+                  onClick={() => handleDeleteMaterial(material._id)}
+                  className="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
+                >
+                  Delete Material
+                </button>
+              </div>
             </div>
           ))}
         </div>

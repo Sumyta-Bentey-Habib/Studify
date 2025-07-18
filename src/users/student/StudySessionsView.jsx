@@ -2,10 +2,12 @@ import React, { useEffect, useState, useContext } from "react";
 import Swal from "sweetalert2";
 import useAxios from "../../hooks/useAxios";
 import { AuthContext } from "../../contexts/authcontext/AuthProvider";
+import { useNavigate } from "react-router-dom";
 
 const StudySessionsView = () => {
   const axios = useAxios();
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,8 +23,8 @@ const StudySessionsView = () => {
           icon: "error",
           title: "Oops...",
           text: "Failed to fetch sessions. Please try again later.",
-          background: "#E6E6FA", 
-          color: "#4B0082", 
+          background: "#E6E6FA",
+          color: "#4B0082",
         });
       } finally {
         setLoading(false);
@@ -99,7 +101,7 @@ const StudySessionsView = () => {
               <div
                 key={s._id}
                 className="p-6 border border-indigo-300 rounded shadow"
-                style={{ backgroundColor: "#E6E6FA" }} // lavender bg
+                style={{ backgroundColor: "#E6E6FA" }}
               >
                 <h3 className="mb-2 font-bold text-indigo-900">{s.title}</h3>
                 <p className="text-sm text-indigo-700">Tutor: {s.tutorName}</p>
@@ -111,21 +113,21 @@ const StudySessionsView = () => {
                 </p>
                 <p className="mb-4 text-sm text-indigo-700">{s.description?.slice(0, 80)}...</p>
 
-                {isRegistrationOpen(s.registrationEndDate) ? (
+                {isRegistrationOpen(s.registrationEndDate) && (
                   <button
                     onClick={() => handleBookSession(s)}
-                    className="w-full py-2 text-sm font-semibold text-white uppercase rounded bg-gradient-to-r from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900"
+                    className="w-full py-2 mb-2 text-sm font-semibold text-white uppercase rounded bg-gradient-to-r from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900"
                   >
                     Book Now
                   </button>
-                ) : (
-                  <button
-                    disabled
-                    className="w-full py-2 text-sm font-semibold text-gray-700 uppercase bg-gray-300 rounded cursor-not-allowed"
-                  >
-                    Registration Closed
-                  </button>
                 )}
+
+                <button
+                  onClick={() => navigate(`${s._id}`)}  // relative navigation to session details
+                  className="w-full py-2 text-sm font-semibold text-indigo-800 uppercase border border-indigo-800 rounded hover:bg-indigo-100"
+                >
+                  View Details
+                </button>
               </div>
             ))}
           </div>

@@ -24,6 +24,19 @@ const ViewAllStudySessions = () => {
     fetchSessions();
   }, [axios]);
 
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this session?")) return;
+
+    try {
+      await axios.delete(`/sessions/${id}`);
+      setSessions((prev) => prev.filter((s) => s._id !== id));
+      setMessage("Session deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete session:", error);
+      setMessage("Failed to delete session.");
+    }
+  };
+
   if (loading) return <p>Loading study sessions...</p>;
 
   return (
@@ -33,7 +46,7 @@ const ViewAllStudySessions = () => {
       {message && (
         <p
           className={`mb-4 ${
-            message.includes("Failed") ? "text-red-600" : "text-gray-700"
+            message.includes("Failed") ? "text-red-600" : "text-green-700"
           }`}
         >
           {message}
@@ -84,6 +97,13 @@ const ViewAllStudySessions = () => {
                 <span className="font-semibold">Status:</span>{" "}
                 {session.status || "N/A"}
               </p>
+
+              <button
+                onClick={() => handleDelete(session._id)}
+                className="mt-4 btn btn-sm btn-error"
+              >
+                Delete
+              </button>
             </div>
           </div>
         ))}

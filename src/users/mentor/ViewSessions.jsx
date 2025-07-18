@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import useAxios from "../../hooks/useAxios";
+import Swal from "sweetalert2";
 
 const ViewSessions = () => {
   const axios = useAxios();
@@ -22,9 +23,47 @@ const ViewSessions = () => {
     fetchSessions();
   }, [axios]);
 
+  const handleDelete = async (id) => {
+    const confirm = await Swal.fire({
+      title: "Delete this session?",
+      text: "This action cannot be undone!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await axios.delete(`/sessions/${id}`);
+      setSessions((prev) => prev.filter((s) => s._id !== id));
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: "Session deleted",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+    } catch (err) {
+      console.error("Failed to delete session:", err);
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: "Failed to delete",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex justify-center p-10 text-indigo-700" style={{ backgroundColor: "#F3E8FF" }}>
+      <div
+        className="flex justify-center p-10 text-indigo-700"
+        style={{ backgroundColor: "#F3E8FF" }}
+      >
         Loading sessions...
       </div>
     );
@@ -32,14 +71,20 @@ const ViewSessions = () => {
 
   if (sessions.length === 0) {
     return (
-      <p className="p-10 text-center text-indigo-700" style={{ backgroundColor: "#F3E8FF" }}>
+      <p
+        className="p-10 text-center text-indigo-700"
+        style={{ backgroundColor: "#F3E8FF" }}
+      >
         No sessions available.
       </p>
     );
   }
 
   return (
-    <div className="flex flex-wrap justify-center gap-6 p-6" style={{ backgroundColor: "#F3E8FF" }}>
+    <div
+      className="flex flex-wrap justify-center gap-6 p-6"
+      style={{ backgroundColor: "#F3E8FF" }}
+    >
       {sessions.map((s) => (
         <div
           key={s._id}
@@ -93,6 +138,14 @@ const ViewSessions = () => {
               </time>
             </li>
           </ul>
+
+          {/* Delete Button */}
+          <button
+            onClick={() => handleDelete(s._id)}
+            className="px-3 py-2 text-xs font-semibold text-white bg-red-600 rounded hover:bg-red-700"
+          >
+            Delete Session
+          </button>
         </div>
       ))}
     </div>

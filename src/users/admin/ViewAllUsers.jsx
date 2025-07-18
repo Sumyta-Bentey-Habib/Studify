@@ -55,6 +55,27 @@ const ViewAllUsers = () => {
     }
   };
 
+  const handleDeleteUser = async (userId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "This user will be permanently deleted!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await axios.delete(`/users/${userId}`);
+      setUsers((prev) => prev.filter((u) => u._id !== userId));
+      toast("User deleted successfully");
+    } catch (err) {
+      console.error(err);
+      toast("Failed to delete user", "error");
+    }
+  };
+
   const approveRequest = async (requestId, userId) => {
     try {
       await axios.post(`/admin/upgrade-requests/${requestId}/approve`);
@@ -101,6 +122,7 @@ const ViewAllUsers = () => {
                   <th>Email</th>
                   <th>Role</th>
                   <th>Upgrade Request</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -150,6 +172,14 @@ const ViewAllUsers = () => {
                         ) : (
                           "—"
                         )}
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => handleDeleteUser(user._id)}
+                          className="px-2 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   );
