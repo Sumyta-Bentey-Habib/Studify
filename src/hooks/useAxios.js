@@ -3,7 +3,7 @@ import { getAuth } from 'firebase/auth';
 
 const useAxios = () => {
   const instance = axios.create({
-    baseURL: 'http://localhost:3000', 
+    baseURL: 'https://studify-server-site.vercel.app', 
   });
 
   instance.interceptors.request.use(async (config) => {

@@ -6,7 +6,7 @@ import { AuthContext } from "../contexts/authcontext/AuthProvider";
 import { useNavigate, NavLink } from "react-router-dom";
 import { updateProfile } from "firebase/auth";
 import SocialLogin from "../shared/SocialLogin";
-import axios from "axios";
+import useAxios from "../hooks/useAxios";
 
 const RegistrationPage = () => {
   useEffect(() => {
@@ -23,6 +23,7 @@ const RegistrationPage = () => {
   const { createUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  const axiosSecure = useAxios(); 
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -61,17 +62,17 @@ const RegistrationPage = () => {
     }
 
     try {
-      // Create user in Firebase Auth
+      // ✅ CREATE USER IN FIREBASE
       const result = await createUser(email, password);
 
-      // Update Firebase profile
+      // ✅ UPDATE PROFILE
       await updateProfile(result.user, {
         displayName: name,
         photoURL: photoURL,
       });
 
-      // Save user to backend (backend will assign role automatically)
-      await axios.post("http://localhost:3000/users", {
+      // ✅ POST TO BACKEND — USE SECURE AXIOS WITH JWT HEADER
+      await axiosSecure.post("/users", {
         name,
         email,
         photoURL,
