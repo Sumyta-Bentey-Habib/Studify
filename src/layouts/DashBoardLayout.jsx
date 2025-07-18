@@ -25,20 +25,20 @@ const DashboardLayout = () => {
   return (
     <div className="flex flex-col min-h-screen bg-purple-50">
       {/* Top Section: Logo, Profile & Nav */}
-      <header className="p-6 text-white bg-purple-900 shadow">
-        <div className="max-w-5xl mx-auto">
+      <header className="p-4 text-white bg-purple-900 shadow sm:p-6">
+        <div className="max-w-5xl px-2 mx-auto sm:px-0">
           {/* Logo */}
-          <div className="flex items-center gap-3 p-2 mb-6 bg-white rounded-full shadow-md">
+          <div className="flex items-center gap-3 p-2 mb-6 bg-white rounded-full shadow-md w-max">
             <Logo className="w-10 h-10" />
           </div>
 
           {/* Profile Section */}
-          <div className="flex items-center max-w-md gap-4 p-3 mb-6 bg-purple-800 rounded-md shadow">
+          <div className="flex flex-col items-start max-w-md gap-4 p-3 mb-6 bg-purple-800 rounded-md shadow sm:flex-row sm:items-center">
             <div className="flex items-center justify-center w-12 h-12 text-xl font-semibold text-white bg-purple-600 rounded-full">
               {initials}
             </div>
-            <div>
-              <p className="font-semibold">{user?.displayName || "User"}</p>
+            <div className="min-w-0">
+              <p className="font-semibold truncate">{user?.displayName || "User"}</p>
               <p
                 className="max-w-xs text-sm text-purple-300 truncate"
                 title={user?.email}
@@ -90,7 +90,7 @@ const DashboardLayout = () => {
       </header>
 
       {/* Main content below */}
-      <main className="flex-1 w-full max-w-5xl p-10 mx-auto text-gray-900">
+      <main className="flex-1 w-full max-w-5xl p-6 mx-auto text-gray-900 sm:p-10">
         <Outlet />
       </main>
     </div>

@@ -13,15 +13,15 @@ const Student = () => {
   ];
 
   return (
-    <div>
+    <div className="px-4 sm:px-0">
       <h2 className="mb-6 text-2xl font-semibold text-purple-800">Student Dashboard</h2>
 
-      <div className="flex flex-wrap max-w-full gap-4 mb-8">
+      <div className="flex flex-col max-w-full gap-4 mb-8 sm:flex-row sm:flex-wrap">
         {links.map(({ to, label }) => (
           <Link
             key={to}
             to={to}
-            className="inline-block px-5 py-3 text-white transition-shadow transition-transform duration-300 bg-purple-600 rounded hover:bg-purple-700 hover:scale-105 hover:shadow-lg"
+            className="inline-block w-full px-5 py-3 text-center text-white transition-shadow transition-transform duration-300 bg-purple-600 rounded sm:w-auto hover:bg-purple-700 hover:scale-105 hover:shadow-lg"
           >
             {label}
           </Link>
