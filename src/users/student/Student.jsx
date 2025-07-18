@@ -9,7 +9,7 @@ const Student = () => {
     { to: "view-notes", label: "View Notes" },
     { to: "view-sessions", label: "View Sessions" },
     { to: "study-materials", label: "Study Materials" },
-    { to: "sent-request", label: "Sent Request" },
+    { to: "sent-request", label: "Sent Request To Be A Tutor" },
   ];
 
   return (
@@ -21,7 +21,7 @@ const Student = () => {
           <Link
             key={to}
             to={to}
-            className="inline-block px-5 py-3 text-white transition-shadow transition-transform duration-300 bg-purple-600 rounded  hover:bg-purple-700 hover:scale-105 hover:shadow-lg"
+            className="inline-block px-5 py-3 text-white transition-shadow transition-transform duration-300 bg-purple-600 rounded hover:bg-purple-700 hover:scale-105 hover:shadow-lg"
           >
             {label}
           </Link>

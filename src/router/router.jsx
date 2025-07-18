@@ -27,7 +27,7 @@ import CreateNote from "../users/student/CreateNote";
 import BookedSession from "../users/student/BookedSession";
 import ViewNotes from "../users/student/ViewNotes";
 import ViewMaterials from "../users/student/ViewMaterials";
-import StudentDashboard from "../users/student/StudentDashboard";
+import  StudySessionsView from "../users/student/StudySessionsView";
 import StudentMaterials from "../users/student/StudentMaterials";
 import BeTutorRequest from "../users/student/BeTutorRequest";
 
@@ -85,7 +85,7 @@ export const router = createBrowserRouter([
           { path: "booked-session", element: <BookedSession /> },
           { path: "view-notes", element: <ViewNotes /> },
           { path: "view-materials", element:<ViewMaterials></ViewMaterials> },
-          { path: "view-sessions", element:<StudentDashboard></StudentDashboard> },
+          { path: "view-sessions", element:<StudySessionsView></StudySessionsView> },
           { path: "study-materials", element:<StudentMaterials></StudentMaterials> },
           { path: "sent-request", element:<BeTutorRequest></BeTutorRequest> },
          

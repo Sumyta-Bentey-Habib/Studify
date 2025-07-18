@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import useAxios from "../../hooks/useAxios";
 import { AuthContext } from "../../contexts/authcontext/AuthProvider";
 
-const StudentDashboard = () => {
+const StudySessionsView = () => {
   const axios = useAxios();
   const { user } = useContext(AuthContext);
 
@@ -21,8 +21,8 @@ const StudentDashboard = () => {
           icon: "error",
           title: "Oops...",
           text: "Failed to fetch sessions. Please try again later.",
-          background: "#E6E6FA", // Lavender background
-          color: "#4B0082", // Indigo text
+          background: "#E6E6FA", 
+          color: "#4B0082", 
         });
       } finally {
         setLoading(false);
@@ -135,4 +135,4 @@ const StudentDashboard = () => {
   );
 };
 
-export default StudentDashboard;
+export default StudySessionsView;
