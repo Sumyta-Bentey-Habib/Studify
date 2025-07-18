@@ -12,7 +12,6 @@ import Loading from "../../components/Loading";
 import useAxios from "../../hooks/useAxios";
 
 export const AuthContext = createContext(null);
-
 export const useAuth = () => useContext(AuthContext);
 
 const AuthProvider = ({ children }) => {
@@ -42,28 +41,61 @@ const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        const saveUser = async () => {
-          try {
-            await axios.post("/users", {
-              name: currentUser.displayName || "N/A",
-              email: currentUser.email,
-            });
-            console.log("User synced to MongoDB");
-          } catch (error) {
-            if (error.response?.status === 409) {
-              console.log(" User already exists in DB");
-            } else {
-              console.error("Error saving user:", error);
+        try {
+          // Try to get user from backend by email
+          const res = await axios.get(`/users/${currentUser.email}`);
+          const dbUser = res.data;
+
+          setUser({
+            uid: currentUser.uid,
+            email: currentUser.email,
+            displayName: currentUser.displayName,
+            role: (dbUser.role || "student").toLowerCase().trim(),
+          });
+        } catch (error) {
+          if (error.response?.status === 404) {
+            // User not found - create it
+            try {
+              await axios.post("/users", {
+                name: currentUser.displayName || "N/A",
+                email: currentUser.email,
+              });
+
+              // After creation, get the user again
+              const res = await axios.get(`/users/${currentUser.email}`);
+              const dbUser = res.data;
+
+              setUser({
+                uid: currentUser.uid,
+                email: currentUser.email,
+                displayName: currentUser.displayName,
+                role: (dbUser.role || "student").toLowerCase().trim(),
+              });
+            } catch (postError) {
+              console.error("Error creating user:", postError);
+              setUser({
+                uid: currentUser.uid,
+                email: currentUser.email,
+                displayName: currentUser.displayName,
+                role: "student",
+              });
             }
+          } else {
+            console.error("Error fetching user:", error);
+            setUser({
+              uid: currentUser.uid,
+              email: currentUser.email,
+              displayName: currentUser.displayName,
+              role: "student",
+            });
           }
-        };
-        saveUser();
+        }
+      } else {
+        setUser(null);
       }
+      setLoading(false);
     });
 
     return () => unsubscribe();

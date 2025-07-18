@@ -29,6 +29,8 @@ import ViewMaterials from "../users/student/ViewMaterials";
 import StudentDashboard from "../users/student/StudentDashboard";
 import StudentMaterials from "../users/student/StudentMaterials";
 
+import ProfilePage from "../pages/ProfilePage";
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -85,5 +87,12 @@ export const router = createBrowserRouter([
         ],
       },
     ],
+    
+  },
+  {
+    path:"/dashboard/profile",
+    element:<ProfilePage></ProfilePage>
+
+
   },
 ]);

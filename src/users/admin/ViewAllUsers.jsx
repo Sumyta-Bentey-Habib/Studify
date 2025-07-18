@@ -12,33 +12,50 @@ const ViewAllUsers = () => {
   const usersPerPage = 10;
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await axios.get("/users");
-        setUsers(res.data);
-        setMessage(res.data.length === 0 ? "No users found." : "");
-      } catch (error) {
-        console.error("Failed to fetch users:", error);
-        setMessage("Failed to load users.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUsers();
-  }, [axios]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get("/users");
+      setUsers(res.data);
+      setMessage(res.data.length === 0 ? "No users found." : "");
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+      setMessage("Failed to load users.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRoleChange = async (userId, newRole) => {
+    try {
+      await axios.patch(`/users/${userId}/role`, { role: newRole });
+      // Option 1: Re-fetch all users
+      // await fetchUsers();
+
+      // Option 2: Update local state
+      setUsers((prev) =>
+        prev.map((u) =>
+          u._id === userId ? { ...u, role: newRole } : u
+        )
+      );
+      setMessage("Role updated successfully!");
+    } catch (error) {
+      console.error("Failed to update role:", error);
+      setMessage("Failed to update role.");
+    }
+  };
 
   if (loading) return <p>Loading users...</p>;
 
-  // Calculate total pages
+  // Pagination calculations
   const totalPages = Math.ceil(users.length / usersPerPage);
-
-  // Slice users for current page
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
 
-  // Handle page change
   const goToPage = (page) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
@@ -51,7 +68,7 @@ const ViewAllUsers = () => {
       {message && (
         <p
           className={`mb-4 ${
-            message.includes("Failed") ? "text-red-600" : "text-gray-700"
+            message.includes("Failed") ? "text-red-600" : "text-green-600"
           }`}
         >
           {message}
@@ -76,14 +93,25 @@ const ViewAllUsers = () => {
                     <td>{indexOfFirstUser + idx + 1}</td>
                     <td>{user.name || "N/A"}</td>
                     <td>{user.email || "N/A"}</td>
-                    <td className="capitalize">{user.role || "student"}</td>
+                    <td>
+                      <select
+                        value={user.role || "student"}
+                        onChange={(e) =>
+                          handleRoleChange(user._id, e.target.value)
+                        }
+                        className="px-2 py-1 border border-purple-300 rounded"
+                      >
+                        <option value="student">Student</option>
+                        <option value="tutor">Tutor</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          {/* Pagination controls */}
           <div className="flex items-center justify-center mt-6 space-x-3">
             <button
               onClick={() => goToPage(currentPage - 1)}
@@ -93,7 +121,6 @@ const ViewAllUsers = () => {
               Previous
             </button>
 
-            {/* Show page numbers */}
             {[...Array(totalPages)].map((_, i) => (
               <button
                 key={i + 1}
