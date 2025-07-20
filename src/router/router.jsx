@@ -34,6 +34,7 @@ import BeTutorRequest from "../users/student/BeTutorRequest";
 import ProfilePage from "../pages/ProfilePage";
 import SessionDetails from "../components/SessionDetails";
 import PaymentSuccess from "../components/PaymentSuccess";
+import About from "../components/About";
 
 export const router = createBrowserRouter([
   {
@@ -44,6 +45,11 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <Home />,
+      },
+      {
+        path:"about",
+        element:<About></About>,
+
       },
     ],
   },

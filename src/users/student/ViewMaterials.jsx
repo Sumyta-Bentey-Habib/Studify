@@ -53,7 +53,8 @@ const ViewMaterials = () => {
         otherLink: material.otherLink,
         savedAt: new Date(),
       };
-      const res = await axios.post("/student-materials", payload);
+      const res = await axios.get("/student-materials",payload);
+
       if (res.data.insertedId) {
         Swal.fire({
           icon: "success",

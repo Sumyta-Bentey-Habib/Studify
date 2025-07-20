@@ -1,27 +1,34 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxios from "../../hooks/useAxios";
+import { useAuth } from "../../contexts/authcontext/AuthProvider";
 import Swal from "sweetalert2";
 
 const ViewSessions = () => {
   const axios = useAxios();
-  const [sessions, setSessions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        const res = await axios.get("/sessions");
-        setSessions(res.data);
-      } catch (err) {
-        console.error("Failed to fetch sessions:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSessions();
-  }, [axios]);
+  // ✅ Fetch sessions
+  const { data: sessions = [], isLoading } = useQuery({
+    queryKey: ["sessions"],
+    queryFn: async () => {
+      const res = await axios.get("/sessions");
+      return res.data;
+    },
+  });
+
+  // ✅ Delete session mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      await axios.delete(`/sessions/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+    },
+  });
 
   const handleDelete = async (id) => {
     const confirm = await Swal.fire({
@@ -35,8 +42,7 @@ const ViewSessions = () => {
     if (!confirm.isConfirmed) return;
 
     try {
-      await axios.delete(`/sessions/${id}`);
-      setSessions((prev) => prev.filter((s) => s._id !== id));
+      await deleteMutation.mutateAsync(id);
       Swal.fire({
         toast: true,
         position: "top-end",
@@ -58,7 +64,12 @@ const ViewSessions = () => {
     }
   };
 
-  if (loading) {
+  // ✅ Filter sessions by current user
+  const filteredSessions = user?.email
+    ? sessions.filter((s) => s.creatorEmail === user.email)
+    : [];
+
+  if (isLoading) {
     return (
       <div
         className="flex justify-center p-10 text-indigo-700"
@@ -69,7 +80,7 @@ const ViewSessions = () => {
     );
   }
 
-  if (sessions.length === 0) {
+  if (filteredSessions.length === 0) {
     return (
       <p
         className="p-10 text-center text-indigo-700"
@@ -85,13 +96,12 @@ const ViewSessions = () => {
       className="flex flex-wrap justify-center gap-6 p-6"
       style={{ backgroundColor: "#F3E8FF" }}
     >
-      {sessions.map((s) => (
+      {filteredSessions.map((s) => (
         <div
           key={s._id}
           className="flex flex-col justify-between p-6 transition-shadow rounded-lg shadow-md card w-80"
           style={{ backgroundColor: "white" }}
         >
-          {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3
@@ -119,7 +129,6 @@ const ViewSessions = () => {
             </div>
           </div>
 
-          {/* Description */}
           <p
             className="mb-4 text-sm text-indigo-700 line-clamp-3"
             title={s.description}
@@ -127,7 +136,6 @@ const ViewSessions = () => {
             {s.description || "No description available."}
           </p>
 
-          {/* Info */}
           <ul className="mb-6 space-y-1 text-xs text-indigo-600">
             <li>⭐ Average Rating: {s.averageRating ?? "N/A"}</li>
             <li>Duration: {s.duration || "N/A"}</li>
@@ -139,7 +147,6 @@ const ViewSessions = () => {
             </li>
           </ul>
 
-          {/* Delete Button */}
           <button
             onClick={() => handleDelete(s._id)}
             className="px-3 py-2 text-xs font-semibold text-white bg-red-600 rounded hover:bg-red-700"
