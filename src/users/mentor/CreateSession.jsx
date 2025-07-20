@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import useAxios from "../../hooks/useAxios";
 import Swal from "sweetalert2";
+import { useAuth } from "../../contexts/authcontext/AuthProvider"; // ✅ Add this
 
 const CreateSession = () => {
   const axios = useAxios();
+  const { user } = useAuth(); // ✅ Get current user
 
   const [form, setForm] = useState({
     title: "",
@@ -25,6 +27,16 @@ const CreateSession = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
 
+    if (!user?.email) {
+      Swal.fire({
+        title: "Error",
+        text: "You must be logged in to create a session.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+
     const payload = {
       ...form,
       averageRating: parseFloat(form.averageRating || 0),
@@ -35,6 +47,7 @@ const CreateSession = () => {
       reviews: [],
       status: "open",
       createdAt: new Date(),
+      creatorEmail: user.email, // ✅ Add creatorEmail
     };
 
     try {
