@@ -1,10 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Outlet, NavLink } from "react-router-dom";
 import { useAuth } from "../contexts/authcontext/AuthProvider";
 import Logo from "../shared/Logo";
 import { Home, UserCheck, User, BookOpen } from "lucide-react";
 
 const DashboardLayout = () => {
+  useEffect(()=>{
+    document.title="DashBoard";
+  },[]);
+
   const { user } = useAuth();
 
   const role = (user?.role || "student").toLowerCase().trim();

@@ -73,9 +73,6 @@ export default function Carousel() {
         <p className="mb-6 text-sm leading-relaxed sm:text-base md:text-lg">
           {sliders[currentSlider].des}
         </p>
-        <button className="px-6 py-3 text-sm font-semibold text-white bg-purple-600 rounded hover:bg-purple-700 sm:text-base">
-          Join Now
-        </button>
       </div>
 
  

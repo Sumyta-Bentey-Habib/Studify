@@ -39,7 +39,7 @@ const ImportentCourses = () => {
   return (
     <Container>
         <div>
-      <h2 className="mt-10 mb-10 text-3xl font-bold text-center text-purple-700 sm:text-4xl">
+      <h2 className="mt-10 text-3xl font-bold text-center text-purple-700 sm:text-4xl">
         Why These Courses Matter
       </h2>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
@@ -48,8 +48,8 @@ const ImportentCourses = () => {
             key={index}
             className={`flex flex-col justify-between rounded-lg p-6 shadow-md transition-colors duration-300 ${
               index % 2 === 0
-                ? 'bg-white text-purple-700'
-                : 'bg-purple-700 text-white'
+                ? 'bg-white text-purple-500'
+                : 'bg-purple-500 text-white'
             }`}
           >
             <h3 className="mb-3 text-lg font-semibold md:text-xl">

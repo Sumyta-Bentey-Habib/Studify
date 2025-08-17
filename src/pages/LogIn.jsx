@@ -5,8 +5,13 @@ import { useNavigate, NavLink } from "react-router-dom";
 import Swal from "sweetalert2";
 import { AuthContext } from "../contexts/authcontext/AuthProvider";
 import SocialLogin from "../shared/SocialLogin";
+import { useEffect } from "react";
 
 const LogIn = () => {
+  useEffect(()=>{
+    document.title="LogIn";
+  },[]);
+
   const { signInUser } = useContext(AuthContext);
   const navigate = useNavigate();
 

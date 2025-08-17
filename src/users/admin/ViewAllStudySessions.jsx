@@ -28,7 +28,7 @@ const ViewAllStudySessions = ({ limit }) => {
 
   return (
     <div className="max-w-6xl p-4 mx-auto">
-      <h2 className="mb-6 text-2xl font-bold text-purple-800">All Study Sessions</h2>
+      <h2 className="mb-6 text-5xl font-bold text-center text-purple-800">All Study Sessions</h2>
 
       {message && (
         <p

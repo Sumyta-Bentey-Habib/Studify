@@ -39,7 +39,7 @@ const FAQ = () => {
 
   return (
     <section
-      className="max-w-4xl px-6 py-12 mx-auto rounded-lg shadow"
+      className="max-w-4xl px-6 py-12 mx-auto mt-10 rounded-lg shadow"
       style={{ backgroundColor: "#F3E8FF" }}
     >
       <h2 className="mb-6 text-3xl font-extrabold text-purple-800">Frequently Asked Questions</h2>

@@ -35,6 +35,7 @@ import ProfilePage from "../pages/ProfilePage";
 import SessionDetails from "../components/SessionDetails";
 import PaymentSuccess from "../components/PaymentSuccess";
 import About from "../components/About";
+import ContactUs from "../components/ContactUs";
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +52,12 @@ export const router = createBrowserRouter([
         element:<About></About>,
 
       },
+      {
+        path:"contact",
+        element:<ContactUs></ContactUs>,
+
+      },
+
     ],
   },
   {

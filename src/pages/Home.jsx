@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Carousel from '../components/Carousel';
 import ImportentCourses from '../components/ImportentCourses';
 import UserReviews from '../components/UserReviews';
 import ViewAllStudySessions from '../users/admin/ViewAllStudySessions'; 
 import FAQ from '../components/FAQ';
-
 const Home = () => {
+  useEffect(()=>{
+    document.title="Studify";
+  },[]);
+
   return (
     <div>
       <Carousel />

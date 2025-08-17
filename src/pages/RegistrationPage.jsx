@@ -10,7 +10,7 @@ import useAxios from "../hooks/useAxios";
 
 const RegistrationPage = () => {
   useEffect(() => {
-    document.title = "Registration Page || GoAthlete";
+    document.title = "Registration Page";
   }, []);
 
   const [formData, setFormData] = useState({
