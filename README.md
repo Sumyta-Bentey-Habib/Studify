@@ -13,7 +13,7 @@ Check out the live version of Studify here:
 
 ## Default Admin Credentials
 - **Email:** admin@studify.com  
-- **Password:** 12345678
+- **Password:** 12345678Admin
 
 
 
