@@ -4,64 +4,107 @@ import React from "react";
 import { BookOpen, Notebook, Lock, UserPlus } from "lucide-react";
 import { useEffect } from "react";
 
+const features = [
+  {
+    icon: <Lock size={24} />,
+    emoji: "🔑",
+    title: "Book Sessions",
+    description: "Join sessions with your preferred tutor and manage your bookings seamlessly.",
+  },
+  {
+    icon: <BookOpen size={24} />,
+    emoji: "📚",
+    title: "Save Materials",
+    description: "Access or save study resources and keep them neatly organized.",
+  },
+  {
+    icon: <Notebook size={24} />,
+    emoji: "📝",
+    title: "Manage Notes",
+    description: "Create private notes only you can see, edit, or delete anytime.",
+  },
+  {
+    icon: <UserPlus size={24} />,
+    emoji: "🤝",
+    title: "Become a Mentor",
+    description: "Request an upgrade and let our admin securely review it.",
+  },
+];
+
 const About = () => {
-  useEffect(()=>{
-    document.title="About";
-  },[]);
+  useEffect(() => {
+    document.title = "About";
+  }, []);
 
   return (
-    <section className="relative flex items-center min-h-screen px-6 py-16 bg-gradient-to-br from-purple-50 to-purple-100">
-      <div className="max-w-4xl p-10 mx-auto border border-purple-200 shadow-xl bg-white/80 backdrop-blur-md rounded-3xl">
-        
-        {/* Heading */}
-        <h1 className="mb-6 text-4xl font-extrabold text-center text-purple-800">
-          About <span className="text-purple-600">Studify</span>
-        </h1>
+    <section className="relative flex items-center min-h-screen px-6 py-16 bg-gradient-to-br from-indigo-50 via-white to-slate-50">
+      {/* Background blobs */}
+      <div
+        className="pointer-events-none absolute -top-24 -left-24 w-80 h-80 rounded-full opacity-20 blur-3xl"
+        style={{ background: "radial-gradient(circle, #818cf8, #c7d2fe)" }}
+      />
+      <div
+        className="pointer-events-none absolute -bottom-20 -right-20 w-64 h-64 rounded-full opacity-20 blur-3xl"
+        style={{ background: "radial-gradient(circle, #34d399, #6ee7b7)" }}
+      />
 
-        {/* Intro */}
-        <p className="mb-6 text-lg text-center text-purple-900">
-          <strong>Studify</strong> is your all-in-one learning platform — designed for students to
-          book sessions, save study materials, and manage notes in one secure space.
-        </p>
+      <div className="relative z-10 max-w-4xl mx-auto w-full">
+        {/* Card */}
+        <div className="bg-white/80 backdrop-blur-md rounded-3xl border border-indigo-100 shadow-xl p-10">
 
-        {/* Features */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="flex items-start gap-3 p-4 transition shadow-sm bg-purple-50 rounded-xl hover:shadow-md">
-            <Lock className="text-purple-700" size={28} />
-            <p className="text-purple-900">
-              🔑 <strong>Book Sessions</strong>: Join sessions with your preferred tutor and manage your bookings seamlessly.
-            </p>
+          {/* Badge */}
+          <div className="flex justify-center mb-6">
+            <span className="inline-block rounded-full bg-indigo-50 px-4 py-1.5 text-sm font-semibold text-indigo-600 ring-1 ring-indigo-100">
+              🎓 About Studify
+            </span>
           </div>
-          <div className="flex items-start gap-3 p-4 transition shadow-sm bg-purple-50 rounded-xl hover:shadow-md">
-            <BookOpen className="text-purple-700" size={28} />
-            <p className="text-purple-900">
-              📚 <strong>Save Materials</strong>: Access or save study resources and keep them neatly organized.
-            </p>
+
+          {/* Heading */}
+          <h1 className="mb-6 text-4xl font-extrabold text-center text-slate-900">
+            About{" "}
+            <span className="bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
+              Studify
+            </span>
+          </h1>
+
+          {/* Intro */}
+          <p className="mb-10 text-lg text-center text-slate-600 max-w-2xl mx-auto">
+            <strong className="text-slate-800">Studify</strong> is your all-in-one learning platform — designed for
+            students to book sessions, save study materials, and manage notes in one secure space.
+          </p>
+
+          {/* Features grid */}
+          <div className="grid gap-5 md:grid-cols-2">
+            {features.map((f, i) => (
+              <div
+                key={i}
+                className="flex items-start gap-4 p-5 bg-indigo-50/60 rounded-2xl border border-indigo-100 hover:shadow-md transition-shadow"
+              >
+                <div className="flex-shrink-0 flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-600 text-white">
+                  {f.icon}
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-800 mb-1">{f.emoji} {f.title}</h3>
+                  <p className="text-sm text-slate-600">{f.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="flex items-start gap-3 p-4 transition shadow-sm bg-purple-50 rounded-xl hover:shadow-md">
-            <Notebook className="text-purple-700" size={28} />
-            <p className="text-purple-900">
-              📝 <strong>Manage Notes</strong>: Create private notes only you can see, edit, or delete anytime.
-            </p>
-          </div>
-          <div className="flex items-start gap-3 p-4 transition shadow-sm bg-purple-50 rounded-xl hover:shadow-md">
-            <UserPlus className="text-purple-700" size={28} />
-            <p className="text-purple-900">
-              🤝 <strong>Become a Mentor</strong>: Request an upgrade and let our admin securely review it.
-            </p>
-          </div>
+
+          {/* Security note */}
+          <p className="mt-10 text-center text-sm text-slate-600 bg-emerald-50 rounded-xl px-6 py-4 border border-emerald-100">
+            ✅ All your data — sessions, materials, and notes — are{" "}
+            <strong className="text-emerald-700">secure</strong> and visible only to you when logged in.
+          </p>
+
+          {/* Closing */}
+          <p className="mt-6 text-base font-semibold text-center text-slate-700">
+            Studify helps you study smarter —{" "}
+            <span className="text-indigo-600">organized</span>,{" "}
+            <span className="text-indigo-600">secure</span>, and{" "}
+            <span className="text-indigo-600">simple</span>.
+          </p>
         </div>
-
-        {/* Security Note */}
-        <p className="mt-8 text-center text-purple-800">
-          ✅ All your data — sessions, materials, and notes — are <strong>secure</strong> and visible only to you when logged in.
-        </p>
-
-        {/* Closing */}
-        <p className="mt-6 text-lg font-semibold text-center text-purple-900">
-          Studify helps you study smarter — <span className="text-purple-700">organized</span>, 
-          <span className="text-purple-700"> secure</span>, and <span className="text-purple-700">simple</span>.
-        </p>
       </div>
     </section>
   );

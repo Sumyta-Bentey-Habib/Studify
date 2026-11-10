@@ -1,126 +1,97 @@
-import React, { useEffect, useState } from 'react';
-import useAxios from '../../hooks/useAxios';
-import { useAuth } from '../../contexts/authcontext/AuthProvider';
-import Swal from 'sweetalert2';
+import React, { useEffect, useState } from "react";
+import useAxios from "../../hooks/useAxios";
+import { useAuth } from "../../contexts/authcontext/AuthProvider";
+import Swal from "sweetalert2";
+import { FileText } from "lucide-react";
 
 const ViewNotes = () => {
   const { user } = useAuth();
   const axios = useAxios();
-
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (!user?.email) {
-      setMessage('You must be logged in to view your notes.');
-      setLoading(false);
-      return;
-    }
-
+    if (!user?.email) { setMessage("You must be logged in."); setLoading(false); return; }
     const fetchNotes = async () => {
       try {
         const res = await axios.get(`/notes?userEmail=${encodeURIComponent(user.email)}`);
         setNotes(res.data);
-        if (res.data.length === 0) setMessage('No notes found.');
-        else setMessage('');
+        if (res.data.length === 0) setMessage("No notes found.");
+        else setMessage("");
       } catch (error) {
-        console.error('Failed to fetch notes:', error);
-        setMessage('Failed to load notes.');
+        console.error("Failed to fetch notes:", error);
+        setMessage("Failed to load notes.");
       } finally {
         setLoading(false);
       }
     };
-
     fetchNotes();
   }, [axios, user]);
 
   const handleDelete = async (noteId) => {
     const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'This note will be permanently deleted.',
-      icon: 'warning',
+      title: "Are you sure?",
+      text: "This note will be permanently deleted.",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#7C3AED',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
-      background: '#F3E8FF',
-      color: '#4C1D95',
+      confirmButtonColor: "#4f46e5",
+      cancelButtonColor: "#ef4444",
+      confirmButtonText: "Yes, delete it!",
     });
-
     if (result.isConfirmed) {
       try {
         await axios.delete(`/notes/${noteId}`);
-        setNotes((prev) => prev.filter((note) => (note._id || note.insertedId) !== noteId));
-        Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: 'Your note has been deleted.',
-          background: '#F3E8FF',
-          confirmButtonColor: '#7C3AED',
-          color: '#4C1D95',
-        });
+        setNotes((prev) => prev.filter((n) => (n._id || n.insertedId) !== noteId));
+        Swal.fire({ icon: "success", title: "Deleted!", text: "Your note has been deleted.", confirmButtonColor: "#4f46e5" });
       } catch (error) {
-        console.error('Failed to delete note:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to delete note.',
-          background: '#F3E8FF',
-          confirmButtonColor: '#7C3AED',
-          color: '#4C1D95',
-        });
+        console.error("Failed to delete note:", error);
+        Swal.fire({ icon: "error", title: "Error", text: "Failed to delete note.", confirmButtonColor: "#4f46e5" });
       }
     }
   };
 
   if (loading)
     return (
-      <p className="p-6 text-center text-indigo-700" style={{ backgroundColor: '#F3E8FF' }}>
-        Loading notes...
-      </p>
+      <div className="flex justify-center py-16">
+        <div className="h-8 w-8 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin" />
+      </div>
     );
 
   if (!user?.email)
-    return (
-      <p className="p-6 text-center text-red-600" style={{ backgroundColor: '#F3E8FF' }}>
-        Please log in to view your notes.
-      </p>
-    );
+    return <p className="text-red-600 text-center py-10">Please log in to view your notes.</p>;
 
   return (
-    <div
-      className="max-w-3xl p-6 mx-auto rounded shadow"
-      style={{ backgroundColor: '#F3E8FF' }}
-    >
-      <h2 className="mb-6 text-2xl font-bold text-indigo-900">My Notes</h2>
-
+    <div>
+      <h2 className="text-xl font-bold text-slate-800 mb-5">My Notes</h2>
       {message && !notes.length && (
-        <p className={`mb-6 ${message.includes('Failed') ? 'text-red-600' : 'text-indigo-700'}`}>
-          {message}
-        </p>
+        <div className="text-center py-16 text-slate-400">
+          <FileText size={40} className="mx-auto mb-3 opacity-30" />
+          <p>{message}</p>
+        </div>
       )}
-
       {notes.length > 0 && (
-        <ul className="space-y-6">
+        <ul className="space-y-4 max-w-2xl">
           {notes.map((note) => {
             const noteId = note._id || note.insertedId;
             return (
-              <li
-                key={noteId}
-                className="flex flex-col p-6 border border-indigo-300 rounded shadow bg-indigo-50"
-              >
-                <h3 className="font-semibold text-indigo-900">{note.title}</h3>
-                <p className="mt-3 text-indigo-800 whitespace-pre-wrap">{note.content}</p>
-                <small className="block mt-4 text-indigo-500">
-                  Created at: {new Date(note.createdAt).toLocaleString()}
-                </small>
-                <button
-                  onClick={() => handleDelete(noteId)}
-                  className="self-start px-4 py-2 mt-4 text-white bg-red-600 rounded hover:bg-red-700"
-                >
-                  Delete
-                </button>
+              <li key={noteId} className="bg-white rounded-2xl ring-1 ring-slate-100 shadow-sm overflow-hidden hover:shadow-md transition">
+                <div className="h-1 bg-gradient-to-r from-indigo-500 to-violet-400" />
+                <div className="p-5">
+                  <h3 className="text-base font-bold text-slate-800 mb-2">{note.title}</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap mb-4">{note.content}</p>
+                  <div className="flex items-center justify-between">
+                    <small className="text-xs text-slate-400">
+                      {new Date(note.createdAt).toLocaleString()}
+                    </small>
+                    <button
+                      onClick={() => handleDelete(noteId)}
+                      className="rounded-xl bg-red-50 text-red-600 ring-1 ring-red-200 px-4 py-1.5 text-sm font-semibold hover:bg-red-600 hover:text-white transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               </li>
             );
           })}
