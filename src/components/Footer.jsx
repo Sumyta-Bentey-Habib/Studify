@@ -13,66 +13,67 @@ import Logo from "../shared/Logo";
 
 const Footer = () => {
   return (
-    <footer className="px-6 py-10 text-purple-100 bg-purple-900 border-t">
-      <div className="flex flex-col justify-between gap-10 mx-auto max-w-7xl md:flex-row">
-        {/* Brand / Intro */}
-        <div className="flex-1 md:max-w-xs">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-white rounded-full shadow-md">
-              <Logo className="w-10 h-10" />
+    <footer className="bg-slate-900 text-slate-300">
+      {/* Top gradient bar */}
+      <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-violet-500 to-emerald-400" />
+
+      <div className="mx-auto max-w-7xl px-6 py-14">
+        <div className="flex flex-col gap-10 md:flex-row md:justify-between">
+
+          {/* Brand */}
+          <div className="flex-1 md:max-w-xs">
+            <div className="mb-4 p-2 bg-white rounded-xl inline-block shadow">
+              <Logo />
             </div>
-
+            <p className="text-sm leading-relaxed text-slate-400">
+              Learn together. Grow together. Join a vibrant study community with live groups and collaborative courses.
+            </p>
+            <div className="mt-5 flex gap-4">
+              <Twitter size={18} className="cursor-pointer text-slate-400 hover:text-indigo-400 transition" />
+              <Instagram size={18} className="cursor-pointer text-slate-400 hover:text-indigo-400 transition" />
+              <Linkedin size={18} className="cursor-pointer text-slate-400 hover:text-indigo-400 transition" />
+              <Youtube size={18} className="cursor-pointer text-slate-400 hover:text-indigo-400 transition" />
+            </div>
           </div>
-          <p className="text-sm leading-relaxed">
-            Learn together. Grow together. Join a vibrant study community with live groups and collaborative courses.
-          </p>
-          <div className="flex gap-4 mt-4 text-white">
-            <Twitter className="cursor-pointer hover:text-violet-400" />
-            <Instagram className="cursor-pointer hover:text-violet-400" />
-            <Linkedin className="cursor-pointer hover:text-violet-400" />
-            <Youtube className="cursor-pointer hover:text-violet-400" />
-          </div>
-        </div>
 
-        {/* Contact Info */}
-        <div className="flex-1 md:max-w-xs">
-          <h3 className="mb-3 text-lg font-semibold text-violet-300">
-            Contact Us
-          </h3>
-          <ul className="space-y-3 text-sm">
-            <li className="flex items-center gap-2">
-              <Mail size={18} /> support@studify.com
-            </li>
-            <li className="flex items-center gap-2">
-              <Phone size={18} /> +8801700000000
-            </li>
-            <li className="flex items-center gap-2">
-              <MapPin size={18} /> 24 Knowledge Road, Khulna, Bangladesh
-            </li>
-          </ul>
-        </div>
-
-        {/* Explore Links */}
-        <div className="flex-1 md:max-w-xs">
-          <h3 className="mb-3 text-lg font-semibold text-violet-300">
-            Explore
-          </h3>
-          <ul className="flex flex-col space-y-2 text-sm">
-            <NavLink to="/" className="hover:text-violet-400">
-              Home
-            </NavLink>
-            <NavLink to="/about" className="hover:text-violet-400">
-              About Us
-            </NavLink>
-            <NavLink to="/contact" className="hover:text-violet-400">
+          {/* Contact */}
+          <div className="flex-1 md:max-w-xs">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-widest text-slate-200">
               Contact Us
-            </NavLink>
-          </ul>
-        </div>
-      </div>
+            </h3>
+            <ul className="space-y-3 text-sm text-slate-400">
+              <li className="flex items-center gap-2 hover:text-indigo-400 transition">
+                <Mail size={16} /> support@studify.com
+              </li>
+              <li className="flex items-center gap-2 hover:text-indigo-400 transition">
+                <Phone size={16} /> +8801700000000
+              </li>
+              <li className="flex items-center gap-2 hover:text-indigo-400 transition">
+                <MapPin size={16} /> 24 Knowledge Road, Khulna, Bangladesh
+              </li>
+            </ul>
+          </div>
 
-      <div className="mt-10 text-sm text-center text-purple-400">
-        © {new Date().getFullYear()} Studify. All rights reserved.
+          {/* Explore */}
+          <div className="flex-1 md:max-w-xs">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-widest text-slate-200">
+              Explore
+            </h3>
+            <ul className="flex flex-col gap-2 text-sm text-slate-400">
+              <NavLink to="/" className="hover:text-indigo-400 transition">Home</NavLink>
+              <NavLink to="/about" className="hover:text-indigo-400 transition">About Us</NavLink>
+              <NavLink to="/contact" className="hover:text-indigo-400 transition">Contact Us</NavLink>
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-6 md:flex-row">
+          <p className="text-sm text-slate-500">
+            © {new Date().getFullYear()} Studify. All rights reserved.
+          </p>
+          <p className="text-xs text-slate-600">Made with ❤️ for learners everywhere</p>
+        </div>
       </div>
     </footer>
   );
