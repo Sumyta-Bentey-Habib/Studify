@@ -1,26 +1,31 @@
-"use client";
-
 import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxios from "../../hooks/useAxios";
 import { useAuth } from "../../contexts/authcontext/AuthProvider";
 import Swal from "sweetalert2";
+import { SWAL_THEME } from "../../utils/utils";
+import PageHeader from "../../components/ui/PageHeader";
+import EmptyState from "../../components/ui/EmptyState";
+import LoadingSkeleton from "../../components/ui/LoadingSkeleton";
+import StatusBadge from "../../components/ui/StatusBadge";
+import { CalendarCheck, CalendarPlus, Clock, Star, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const ViewSessions = () => {
   const axios = useAxios();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // ✅ Fetch sessions
+  // Fetch all sessions
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: ["sessions"],
     queryFn: async () => {
       const res = await axios.get("/sessions");
-      return res.data;
+      return Array.isArray(res.data) ? res.data : [];
     },
   });
 
-  // ✅ Delete session mutation
+  // Delete session mutation
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
       await axios.delete(`/sessions/${id}`);
@@ -33,10 +38,15 @@ const ViewSessions = () => {
   const handleDelete = async (id) => {
     const confirm = await Swal.fire({
       title: "Delete this session?",
-      text: "This action cannot be undone!",
+      text: "This action will permanently delete the session and cancel related enrollments.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonColor: SWAL_THEME.cancelButtonColor,
+      cancelButtonColor: SWAL_THEME.confirmButtonColor,
+      confirmButtonText: "Yes, delete session",
+      cancelButtonText: "Cancel",
+      background: SWAL_THEME.background,
+      color: SWAL_THEME.color,
     });
 
     if (!confirm.isConfirmed) return;
@@ -47,9 +57,11 @@ const ViewSessions = () => {
         toast: true,
         position: "top-end",
         icon: "success",
-        title: "Session deleted",
+        title: "Session deleted successfully",
         showConfirmButton: false,
         timer: 2000,
+        background: SWAL_THEME.background,
+        color: SWAL_THEME.color,
       });
     } catch (err) {
       console.error("Failed to delete session:", err);
@@ -57,104 +69,113 @@ const ViewSessions = () => {
         toast: true,
         position: "top-end",
         icon: "error",
-        title: "Failed to delete",
+        title: "Failed to delete session",
         showConfirmButton: false,
         timer: 2000,
       });
     }
   };
 
-  // ✅ Filter sessions by current user
+  // Filter sessions by current mentor's email
   const filteredSessions = user?.email
     ? sessions.filter((s) => s.creatorEmail === user.email)
     : [];
 
-  if (isLoading) {
-    return (
-      <div
-        className="flex justify-center p-10 text-indigo-700"
-        style={{ backgroundColor: "#F3E8FF" }}
-      >
-        Loading sessions...
-      </div>
-    );
-  }
-
-  if (filteredSessions.length === 0) {
-    return (
-      <p
-        className="p-10 text-center text-indigo-700"
-        style={{ backgroundColor: "#F3E8FF" }}
-      >
-        No sessions available.
-      </p>
-    );
-  }
-
   return (
-    <div
-      className="flex flex-wrap justify-center gap-6 p-6"
-      style={{ backgroundColor: "#F3E8FF" }}
-    >
-      {filteredSessions.map((s) => (
-        <div
-          key={s._id}
-          className="flex flex-col justify-between p-6 transition-shadow rounded-lg shadow-md card w-80"
-          style={{ backgroundColor: "white" }}
+    <div className="space-y-6">
+      <PageHeader
+        title="My Published Sessions"
+        description="Monitor, manage, and curate the study courses you have published on StudyFy."
+      >
+        <Link
+          to="/dashboard/mentor/create-session"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-studify-primary text-white text-xs font-semibold hover:bg-studify-primary-dark transition-colors shadow-xs"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3
-                className="text-lg font-semibold text-indigo-900"
-                title={s.title}
-              >
-                {s.title.length > 25 ? s.title.slice(0, 25) + "…" : s.title}
-              </h3>
-              <p className="mt-1 text-sm text-indigo-600">
-                Tutor: <span className="font-medium">{s.tutorName}</span>
-              </p>
+          <CalendarPlus size={14} />
+          <span>New Session</span>
+        </Link>
+      </PageHeader>
+
+      {isLoading ? (
+        <LoadingSkeleton count={3} type="card" />
+      ) : filteredSessions.length === 0 ? (
+        <EmptyState
+          icon={CalendarCheck}
+          title="No sessions created yet"
+          description="You haven't published any study sessions. Start sharing your knowledge by hosting your first session."
+          actionLabel="Create Your First Session"
+          actionLink="/dashboard/mentor/create-session"
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredSessions.map((s) => (
+            <div
+              key={s._id}
+              className="bg-studify-surface rounded-2xl border border-studify-border p-6 shadow-sm hover:border-studify-primary/40 transition-all flex flex-col justify-between"
+            >
+              <div className="space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <h3
+                    className="text-base font-bold text-studify-heading leading-snug line-clamp-1"
+                    title={s.title}
+                  >
+                    {s.title}
+                  </h3>
+                  <StatusBadge status={s.status || "open"}>
+                    {s.status || "Open"}
+                  </StatusBadge>
+                </div>
+
+                <p className="text-xs text-studify-muted leading-relaxed line-clamp-2">
+                  {s.description || "No description provided."}
+                </p>
+
+                <div className="space-y-1.5 text-xs text-studify-muted bg-studify-bg/50 p-3.5 rounded-xl border border-studify-border/60">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <Star size={13} className="text-studify-accent fill-studify-accent" />
+                      <span>Rating: {s.averageRating ?? "5.0"}</span>
+                    </span>
+                    <span className="font-bold text-studify-primary">
+                      {s.registrationFee === 0 || s.registrationFee === "0"
+                        ? "Free"
+                        : `$${s.registrationFee}`}
+                    </span>
+                  </div>
+
+                  {s.duration && (
+                    <div className="flex items-center gap-1 text-[11px]">
+                      <Clock size={12} className="text-studify-primary" />
+                      <span>Duration: {s.duration}</span>
+                    </div>
+                  )}
+
+                  {s.registrationEndDate && (
+                    <div className="text-[11px] text-studify-muted pt-1 border-t border-studify-border/40">
+                      Registration ends:{" "}
+                      {new Date(s.registrationEndDate).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-4 mt-4 border-t border-studify-border flex items-center justify-between">
+                <span className="text-xs text-studify-muted">
+                  Tutor: {s.tutorName}
+                </span>
+
+                <button
+                  onClick={() => handleDelete(s._id)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-studify-danger/10 text-studify-danger text-xs font-semibold hover:bg-studify-danger hover:text-white border border-studify-danger/20 transition-colors"
+                >
+                  <Trash2 size={13} />
+                  <span>Delete</span>
+                </button>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-xl font-bold text-indigo-700">
-                {s.registrationFee === 0 ? (
-                  <span>Free</span>
-                ) : (
-                  <>
-                    <sup className="text-sm">$</sup>
-                    {s.registrationFee}
-                    <sub className="text-xs">/session</sub>
-                  </>
-                )}
-              </p>
-            </div>
-          </div>
-
-          <p
-            className="mb-4 text-sm text-indigo-700 line-clamp-3"
-            title={s.description}
-          >
-            {s.description || "No description available."}
-          </p>
-
-          <ul className="mb-6 space-y-1 text-xs text-indigo-600">
-            <li>⭐ Average Rating: {s.averageRating ?? "N/A"}</li>
-            <li>Duration: {s.duration || "N/A"}</li>
-            <li>
-              Registration Ends:{" "}
-              <time dateTime={s.registrationEndDate}>
-                {new Date(s.registrationEndDate).toLocaleDateString()}
-              </time>
-            </li>
-          </ul>
-
-          <button
-            onClick={() => handleDelete(s._id)}
-            className="px-3 py-2 text-xs font-semibold text-white bg-red-600 rounded hover:bg-red-700"
-          >
-            Delete Session
-          </button>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 };

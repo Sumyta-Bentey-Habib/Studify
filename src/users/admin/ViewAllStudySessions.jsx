@@ -1,125 +1,125 @@
 import React, { useEffect, useState } from "react";
 import useAxios from "../../hooks/useAxios";
-
-const statusColor = (status) => {
-  if (!status) return "bg-slate-100 text-slate-500";
-  const s = status.toLowerCase();
-  if (s === "approved" || s === "ongoing") return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200";
-  if (s === "pending") return "bg-amber-50 text-amber-700 ring-1 ring-amber-200";
-  if (s === "rejected" || s === "closed") return "bg-red-50 text-red-700 ring-1 ring-red-200";
-  return "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200";
-};
+import PageHeader from "../../components/ui/PageHeader";
+import LoadingSkeleton from "../../components/ui/LoadingSkeleton";
+import EmptyState from "../../components/ui/EmptyState";
+import StatusBadge from "../../components/ui/StatusBadge";
+import { BookOpen, User, Calendar, Clock, DollarSign } from "lucide-react";
 
 const ViewAllStudySessions = ({ limit }) => {
   const axios = useAxios();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
 
   useEffect(() => {
+    let isMounted = true;
     const fetchSessions = async () => {
       try {
         const res = await axios.get("/sessions");
-        setSessions(res.data);
-        setMessage(res.data.length === 0 ? "No study sessions available." : "");
+        if (isMounted) setSessions(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
         console.error("Failed to fetch study sessions:", error);
-        setMessage("Failed to load study sessions.");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchSessions();
+
+    return () => {
+      isMounted = false;
+    };
   }, [axios]);
 
-  if (loading)
-    return (
-      <div className="flex justify-center items-center py-24">
-        <div className="h-10 w-10 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin" />
-      </div>
-    );
+  const displayedSessions = limit ? sessions.slice(0, limit) : sessions;
 
   return (
-    <section className="bg-white py-20">
-      <div className="max-w-6xl mx-auto px-6">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <span className="inline-block rounded-full bg-indigo-50 px-4 py-1.5 text-sm font-semibold text-indigo-600 ring-1 ring-indigo-100 mb-4">
-            📖 Browse &amp; Book
-          </span>
-          <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
-            All{" "}
-            <span className="bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
-              Study Sessions
-            </span>
-          </h2>
-          <p className="mt-4 text-slate-500 max-w-md mx-auto">
-            Explore live and upcoming sessions led by experienced mentors.
-          </p>
-        </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="All Study Sessions"
+        description="Comprehensive directory of all live, scheduled, and past study sessions across the platform."
+      />
 
-        {message && (
-          <p className={`mb-8 text-center ${message.includes("Failed") ? "text-red-600" : "text-slate-500"}`}>
-            {message}
-          </p>
-        )}
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {(limit ? sessions.slice(0, limit) : sessions).map((session) => (
+      {loading ? (
+        <LoadingSkeleton count={6} type="card" />
+      ) : displayedSessions.length === 0 ? (
+        <EmptyState
+          icon={BookOpen}
+          title="No study sessions found"
+          description="There are currently no active or scheduled study sessions registered on the platform."
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {displayedSessions.map((session) => (
             <div
               key={session._id}
-              className="group flex flex-col rounded-2xl bg-white ring-1 ring-slate-100 shadow-sm hover:shadow-md hover:ring-indigo-200 transition-all duration-300 overflow-hidden"
+              className="bg-studify-surface rounded-2xl border border-studify-border p-6 shadow-sm hover:border-studify-primary/40 transition-all flex flex-col justify-between"
             >
-              {/* Card top accent bar */}
-              <div className="h-1 w-full bg-gradient-to-r from-indigo-500 to-violet-400" />
-
-              <div className="flex flex-col flex-1 p-6 gap-3">
-                {/* Title + status */}
+              <div className="space-y-4">
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="text-base font-bold text-slate-800 leading-snug">
+                  <h3 className="text-base font-bold text-studify-heading leading-snug">
                     {session.title || "Untitled Session"}
                   </h3>
-                  <span className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${statusColor(session.status)}`}>
-                    {session.status || "N/A"}
+                  <StatusBadge status={session.status || "open"}>
+                    {session.status || "Active"}
+                  </StatusBadge>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-studify-muted">
+                  <User size={13} className="text-studify-primary" />
+                  <span>
+                    Mentor: <strong className="text-studify-heading">{session.tutorName || "Unknown"}</strong>
                   </span>
                 </div>
 
-                {/* Tutor */}
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <span className="text-base">🧑‍🏫</span>
-                  <span>{session.tutorName || "Unknown Tutor"}</span>
-                </div>
-
-                {/* Description */}
                 {session.description && (
-                  <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">
+                  <p className="text-xs text-studify-muted leading-relaxed line-clamp-2">
                     {session.description}
                   </p>
                 )}
 
-                {/* Meta pills */}
-                <div className="flex flex-wrap gap-2 mt-auto pt-3 border-t border-slate-50">
+                <div className="space-y-1.5 text-xs text-studify-muted bg-studify-bg/50 p-3.5 rounded-xl border border-studify-border/60">
+                  <div className="flex items-center justify-between">
+                    <span>Registration Fee:</span>
+                    <strong className="text-studify-primary">
+                      {session.registrationFee === 0 || session.registrationFee === "0"
+                        ? "Free"
+                        : `$${session.registrationFee}`}
+                    </strong>
+                  </div>
+
                   {session.duration && (
-                    <span className="rounded-full bg-slate-50 px-3 py-1 text-xs text-slate-600 ring-1 ring-slate-100">
-                      ⏱ {session.duration}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <Clock size={12} className="text-studify-primary" />
+                      <span>Duration: {session.duration}</span>
+                    </div>
                   )}
-                  {session.averageRating !== undefined && (
-                    <span className="rounded-full bg-amber-50 px-3 py-1 text-xs text-amber-700 ring-1 ring-amber-100">
-                      ★ {session.averageRating || "New"}
-                    </span>
+
+                  {session.classStartTime && (
+                    <div className="flex items-center gap-1.5">
+                      <Calendar size={12} className="text-studify-primary" />
+                      <span>
+                        Starts: {new Date(session.classStartTime).toLocaleString("en-US", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </span>
+                    </div>
                   )}
-                  <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs text-indigo-700 ring-1 ring-indigo-100">
-                    {session.registrationFee === 0 ? "Free" : `$${session.registrationFee}`}
-                  </span>
                 </div>
+              </div>
+
+              <div className="pt-4 mt-4 border-t border-studify-border flex items-center justify-between text-xs text-studify-muted">
+                <span>Created by:</span>
+                <span className="font-mono text-[11px] truncate max-w-[180px]">
+                  {session.creatorEmail || "N/A"}
+                </span>
               </div>
             </div>
           ))}
         </div>
-      </div>
-    </section>
+      )}
+    </div>
   );
 };
 

@@ -1,92 +1,177 @@
 import React, { useEffect, useState } from "react";
 import useAxios from "../../hooks/useAxios";
+import Swal from "sweetalert2";
+import { SWAL_THEME } from "../../utils/utils";
+import PageHeader from "../../components/ui/PageHeader";
+import LoadingSkeleton from "../../components/ui/LoadingSkeleton";
+import EmptyState from "../../components/ui/EmptyState";
+import { FolderOpen, ExternalLink, Image as ImageIcon, Trash2 } from "lucide-react";
 
 const ViewAllStudyMaterials = () => {
   const axios = useAxios();
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
 
   useEffect(() => {
+    let isMounted = true;
     const fetchMaterials = async () => {
       try {
         const res = await axios.get("/materials");
-        setMaterials(res.data);
-        setMessage(res.data.length === 0 ? "No study materials available." : "");
+        if (isMounted) setMaterials(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
         console.error("Failed to fetch study materials:", error);
-        setMessage("Failed to load study materials.");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchMaterials();
+
+    return () => {
+      isMounted = false;
+    };
   }, [axios]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this material?")) return;
+    const confirm = await Swal.fire({
+      title: "Delete this study material?",
+      text: "This file will be permanently removed from all student libraries.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: SWAL_THEME.cancelButtonColor,
+      cancelButtonColor: SWAL_THEME.confirmButtonColor,
+      confirmButtonText: "Yes, delete resource",
+      cancelButtonText: "Cancel",
+      background: SWAL_THEME.background,
+      color: SWAL_THEME.color,
+    });
+
+    if (!confirm.isConfirmed) return;
+
     try {
       await axios.delete(`/materials/${id}`);
       setMaterials((prev) => prev.filter((m) => m._id !== id));
-      setMessage("Material deleted successfully.");
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: "Material deleted successfully",
+        showConfirmButton: false,
+        timer: 2000,
+        background: SWAL_THEME.background,
+        color: SWAL_THEME.color,
+      });
     } catch (error) {
       console.error("Failed to delete material:", error);
-      setMessage("Failed to delete material.");
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "error",
+        title: "Failed to delete material",
+        showConfirmButton: false,
+        timer: 2000,
+      });
     }
   };
 
-  if (loading)
-    return (
-      <div className="flex justify-center py-16">
-        <div className="h-8 w-8 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin" />
-      </div>
-    );
-
   return (
-    <div>
-      <h2 className="text-xl font-bold text-slate-800 mb-5">All Study Materials</h2>
+    <div className="space-y-6">
+      <PageHeader
+        title="All Study Materials"
+        description="Inspect, verify, and moderate all academic slide decks, notes, and uploaded resources."
+      />
 
-      {message && (
-        <p className={`mb-5 text-sm ${message.includes("Failed") ? "text-red-600" : "text-emerald-600"}`}>
-          {message}
-        </p>
-      )}
-
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {materials.map((material) => (
-          <div key={material._id} className="bg-white rounded-2xl ring-1 ring-slate-100 shadow-sm overflow-hidden hover:shadow-md transition">
-            {/* Accent bar */}
-            <div className="h-1 bg-gradient-to-r from-indigo-500 to-violet-400" />
-            {material.imageUrl && (
-              <div className="px-4 pt-4">
-                <img src={material.imageUrl} alt="Study Material" className="w-full h-36 object-cover rounded-xl" />
-              </div>
-            )}
-            <div className="p-5">
-              <h3 className="text-base font-bold text-slate-800 mb-3">
-                {material.subjectName || "No Subject"}
-              </h3>
-              <div className="space-y-1.5 mb-4">
+      {loading ? (
+        <LoadingSkeleton count={6} type="card" />
+      ) : materials.length === 0 ? (
+        <EmptyState
+          icon={FolderOpen}
+          title="No study materials available"
+          description="There are currently no uploaded study materials to display."
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {materials.map((material) => (
+            <div
+              key={material._id}
+              className="bg-studify-surface rounded-2xl border border-studify-border overflow-hidden shadow-sm hover:border-studify-primary/40 transition-all flex flex-col justify-between"
+            >
+              <div>
                 {material.imageUrl ? (
-                  <a href={material.imageUrl} target="_blank" rel="noreferrer" className="text-sm text-indigo-600 hover:underline block">🖼 View Image</a>
-                ) : <p className="text-xs text-slate-400 italic">No image.</p>}
-                {material.driveLink ? (
-                  <a href={material.driveLink} target="_blank" rel="noreferrer" className="text-sm text-indigo-600 hover:underline block">📁 Google Drive</a>
-                ) : <p className="text-xs text-slate-400 italic">No Drive link.</p>}
-                {material.otherLink ? (
-                  <a href={material.otherLink} target="_blank" rel="noreferrer" className="text-sm text-indigo-600 hover:underline block">🔗 Other Link</a>
-                ) : <p className="text-xs text-slate-400 italic">No other link.</p>}
+                  <div className="h-44 bg-studify-bg relative overflow-hidden border-b border-studify-border">
+                    <img
+                      src={material.imageUrl}
+                      alt={material.subjectName || "Material"}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-28 bg-studify-bg/60 border-b border-studify-border flex items-center justify-center text-studify-muted">
+                    <FolderOpen size={32} strokeWidth={1.5} />
+                  </div>
+                )}
+
+                <div className="p-5 space-y-3">
+                  <h3 className="text-base font-bold text-studify-heading leading-snug">
+                    {material.subjectName || "Untitled Subject"}
+                  </h3>
+
+                  <div className="space-y-1.5 text-xs">
+                    {material.imageUrl && (
+                      <a
+                        href={material.imageUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-studify-primary hover:underline font-medium"
+                      >
+                        <ImageIcon size={13} />
+                        <span>View Original File</span>
+                      </a>
+                    )}
+
+                    {material.driveLink && (
+                      <p>
+                        <a
+                          href={material.driveLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 text-studify-primary hover:underline font-medium"
+                        >
+                          <ExternalLink size={13} />
+                          <span>Google Drive Folder</span>
+                        </a>
+                      </p>
+                    )}
+
+                    {material.otherLink && (
+                      <p>
+                        <a
+                          href={material.otherLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 text-studify-primary hover:underline font-medium"
+                        >
+                          <ExternalLink size={13} />
+                          <span>External Cloud Link</span>
+                        </a>
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
-              <button
-                onClick={() => handleDelete(material._id)}
-                className="w-full rounded-xl bg-red-50 text-red-600 ring-1 ring-red-200 px-4 py-2 text-sm font-semibold hover:bg-red-600 hover:text-white transition"
-              >
-                Delete
-              </button>
+
+              <div className="p-4 bg-studify-bg/40 border-t border-studify-border flex items-center justify-end">
+                <button
+                  onClick={() => handleDelete(material._id)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-studify-danger/10 text-studify-danger text-xs font-semibold hover:bg-studify-danger hover:text-white border border-studify-danger/20 transition-colors"
+                >
+                  <Trash2 size={13} />
+                  <span>Delete Resource</span>
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

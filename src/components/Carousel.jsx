@@ -29,9 +29,11 @@ export default function Carousel() {
     setCurrentSlider((prev) => (prev === 0 ? sliders.length - 1 : prev - 1));
 
   useEffect(() => {
-    const interval = setInterval(nextSlider, 4000);
+    const interval = setInterval(() => {
+      setCurrentSlider((prev) => (prev === sliders.length - 1 ? 0 : prev + 1));
+    }, 4000);
     return () => clearInterval(interval);
-  }, [currentSlider]);
+  }, [sliders.length]);
 
   const slide = sliders[currentSlider];
 
