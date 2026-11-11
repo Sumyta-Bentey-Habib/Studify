@@ -1,5 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import useAxios from "../../hooks/useAxios";
+import Swal from "sweetalert2";
+import { SWAL_THEME } from "../../utils/utils";
+import PageHeader from "../../components/ui/PageHeader";
+import LoadingSkeleton from "../../components/ui/LoadingSkeleton";
+import EmptyState from "../../components/ui/EmptyState";
+import StatusBadge from "../../components/ui/StatusBadge";
+import { ArrowUpCircle, Check, X, User, Clock, AlertCircle } from "lucide-react";
 
 const AdminUpgradeRequests = () => {
   const axios = useAxios();
@@ -8,28 +15,52 @@ const AdminUpgradeRequests = () => {
   const [error, setError] = useState(null);
   const [processingId, setProcessingId] = useState(null);
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await axios.get("/admin/upgrade-requests");
-      setRequests(res.data);
+      setRequests(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Error fetching requests");
+      setError(
+        err.response?.data?.message || err.message || "Error fetching upgrade requests"
+      );
     } finally {
       setLoading(false);
     }
-  };
+  }, [axios]);
 
-  useEffect(() => { fetchRequests(); }, []);
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
 
   const approveRequest = async (id) => {
     setProcessingId(id);
     try {
       const res = await axios.post(`/admin/upgrade-requests/${id}/approve`);
-      if (res.status === 200) setRequests((prev) => prev.filter((r) => r._id !== id));
+      if (res.status === 200 || res.data?.success) {
+        setRequests((prev) =>
+          prev.map((r) => (r._id === id ? { ...r, status: "approved" } : r))
+        );
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: "Upgrade request approved",
+          showConfirmButton: false,
+          timer: 2000,
+          background: SWAL_THEME.background,
+          color: SWAL_THEME.color,
+        });
+      }
     } catch (err) {
-      alert("Error: " + (err.response?.data?.message || err.message));
+      Swal.fire({
+        icon: "error",
+        title: "Action Failed",
+        text: err.response?.data?.message || err.message,
+        background: SWAL_THEME.background,
+        color: SWAL_THEME.color,
+      });
     } finally {
       setProcessingId(null);
     }
@@ -39,72 +70,120 @@ const AdminUpgradeRequests = () => {
     setProcessingId(id);
     try {
       const res = await axios.post(`/admin/upgrade-requests/${id}/reject`);
-      if (res.status === 200) setRequests((prev) => prev.filter((r) => r._id !== id));
+      if (res.status === 200 || res.data?.success) {
+        setRequests((prev) =>
+          prev.map((r) => (r._id === id ? { ...r, status: "rejected" } : r))
+        );
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "info",
+          title: "Upgrade request rejected",
+          showConfirmButton: false,
+          timer: 2000,
+          background: SWAL_THEME.background,
+          color: SWAL_THEME.color,
+        });
+      }
     } catch (err) {
-      alert("Error: " + (err.response?.data?.message || err.message));
+      Swal.fire({
+        icon: "error",
+        title: "Action Failed",
+        text: err.response?.data?.message || err.message,
+        background: SWAL_THEME.background,
+        color: SWAL_THEME.color,
+      });
     } finally {
       setProcessingId(null);
     }
   };
 
-  const statusBadge = (status) => {
-    if (status === "approved") return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200";
-    if (status === "rejected") return "bg-red-50 text-red-700 ring-1 ring-red-200";
-    return "bg-amber-50 text-amber-700 ring-1 ring-amber-200";
-  };
-
-  if (loading)
-    return (
-      <div className="flex justify-center py-16">
-        <div className="h-8 w-8 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin" />
-      </div>
-    );
-  if (error) return <p className="text-red-600 p-4">Error: {error}</p>;
-  if (requests.length === 0)
-    return <p className="text-slate-500 text-center py-10">No upgrade requests found.</p>;
-
   return (
-    <div>
-      <h3 className="text-lg font-bold text-slate-800 mb-5">Upgrade Requests</h3>
-      <ul className="space-y-4">
-        {requests.map(({ _id, userId, message, status, createdAt }) => (
-          <li key={_id} className="bg-slate-50 rounded-2xl ring-1 ring-slate-100 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-              <div>
-                <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-0.5">User ID</p>
-                <p className="text-sm text-slate-700 font-mono">{userId}</p>
+    <div className="space-y-6">
+      <PageHeader
+        title="Role Upgrade Requests"
+        description="Review student applications requesting promotion to verified Tutor / Mentor status."
+      />
+
+      {error && (
+        <div className="p-4 rounded-2xl bg-studify-danger/10 border border-studify-danger/20 text-studify-danger text-sm flex items-center gap-2 font-medium">
+          <AlertCircle size={18} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {loading ? (
+        <LoadingSkeleton count={4} type="card" />
+      ) : requests.length === 0 ? (
+        <EmptyState
+          icon={ArrowUpCircle}
+          title="No upgrade requests found"
+          description="There are currently no role upgrade requests pending review."
+        />
+      ) : (
+        <div className="space-y-4">
+          {requests.map(({ _id, userId, message, status, createdAt }) => {
+            const isPending = status === "pending";
+            const isProcessing = processingId === _id;
+
+            return (
+              <div
+                key={_id}
+                className="bg-studify-surface rounded-2xl border border-studify-border p-6 shadow-sm hover:border-studify-primary/40 transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5"
+              >
+                <div className="space-y-2 flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <StatusBadge status={status || "pending"} />
+                    <span className="text-xs text-studify-muted flex items-center gap-1 font-mono">
+                      <User size={13} className="text-studify-primary" />
+                      <span>User ID:</span>
+                      <strong className="text-studify-heading">{userId || "N/A"}</strong>
+                    </span>
+                  </div>
+
+                  <p className="text-sm font-medium text-studify-heading leading-relaxed">
+                    &ldquo;{message || "I want to become a tutor."}&rdquo;
+                  </p>
+
+                  <div className="flex items-center gap-2 text-xs text-studify-muted">
+                    <Clock size={12} />
+                    <span>
+                      Requested:{" "}
+                      {createdAt
+                        ? new Date(createdAt).toLocaleString("en-US", {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                          })
+                        : "N/A"}
+                    </span>
+                  </div>
+                </div>
+
+                {isPending && (
+                  <div className="flex items-center gap-2.5 self-start sm:self-center">
+                    <button
+                      onClick={() => approveRequest(_id)}
+                      disabled={isProcessing}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-studify-primary text-white text-xs font-bold hover:bg-studify-primary-dark transition-colors shadow-xs disabled:opacity-50"
+                    >
+                      <Check size={14} />
+                      <span>{isProcessing ? "Processing…" : "Approve Tutor"}</span>
+                    </button>
+                    <button
+                      onClick={() => rejectRequest(_id)}
+                      disabled={isProcessing}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-studify-danger/10 text-studify-danger text-xs font-semibold hover:bg-studify-danger hover:text-white border border-studify-danger/20 transition-colors disabled:opacity-50"
+                    >
+                      <X size={14} />
+                      <span>Reject</span>
+                    </button>
+                  </div>
+                )}
               </div>
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusBadge(status)}`}>
-                {status}
-              </span>
-            </div>
-            <p className="text-sm text-slate-600 mb-1">
-              <span className="font-semibold">Message:</span> {message || "(No message)"}
-            </p>
-            <p className="text-xs text-slate-400 mb-4">
-              Requested: {new Date(createdAt).toLocaleString()}
-            </p>
-            {status === "pending" && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => approveRequest(_id)}
-                  disabled={processingId === _id}
-                  className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition"
-                >
-                  {processingId === _id ? "Processing…" : "Approve"}
-                </button>
-                <button
-                  onClick={() => rejectRequest(_id)}
-                  disabled={processingId === _id}
-                  className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50 transition"
-                >
-                  {processingId === _id ? "Processing…" : "Reject"}
-                </button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

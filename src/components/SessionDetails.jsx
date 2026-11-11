@@ -4,58 +4,77 @@ import useAxios from "../hooks/useAxios";
 import Swal from "sweetalert2";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { loadStripe } from "@stripe/stripe-js";
-import { useAuth } from "../contexts/authcontext/AuthProvider"; 
+import { useAuth } from "../contexts/authcontext/AuthProvider";
+import { SWAL_THEME } from "../utils/utils";
+import PageHeader from "./ui/PageHeader";
+import StatusBadge from "./ui/StatusBadge";
+import LoadingSkeleton from "./ui/LoadingSkeleton";
+import { ArrowLeft, User, Calendar, Clock, DollarSign, CreditCard, ShieldCheck } from "lucide-react";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
 
 const SessionDetails = () => {
   const { id } = useParams();
   const axios = useAxios();
   const navigate = useNavigate();
-  const { user } = useAuth(); 
+  const { user } = useAuth();
 
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchSession = async () => {
       try {
         const res = await axios.get(`/sessions/${id}`);
-        setSession(res.data);
+        if (isMounted) setSession(res.data);
       } catch (err) {
         console.error(err);
         Swal.fire({
           icon: "error",
-          title: "Oops...",
+          title: "Session Not Found",
           text: "Failed to load session details.",
+          background: SWAL_THEME.background,
+          color: SWAL_THEME.color,
+          confirmButtonColor: SWAL_THEME.confirmButtonColor,
         });
-        navigate("/sessions");
+        navigate("/dashboard/student/view-sessions");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, [axios, id, navigate]);
 
   const openPaymentModal = () => setIsPaymentOpen(true);
   const closePaymentModal = () => setIsPaymentOpen(false);
 
   const handleStripeCheckout = async () => {
-    try {
-      if (!session || !user?.email) return;
+    if (!session || !user?.email) return;
 
-      
+    setCheckoutLoading(true);
+    try {
       const bookingRes = await axios.post("/booked-sessions", {
         sessionId: session._id,
         studentEmail: user.email,
+        title: session.title,
+        tutorName: session.tutorName,
+        studentName: user.displayName || user.email,
+        bookedAt: new Date(),
+        registrationFee: session.registrationFee,
       });
 
       const bookedSessionId = bookingRes.data.insertedId;
 
-      
-      const stripe = await stripePromise;
+      // Ensure Stripe is initialized
+      await stripePromise;
 
       const response = await axios.post("/create-checkout-session", {
         sessionId: session._id,
@@ -66,66 +85,195 @@ const SessionDetails = () => {
 
       if (response.data.url) {
         window.location.href = response.data.url;
+      } else {
+        throw new Error("No checkout URL returned");
       }
     } catch (error) {
       console.error("Stripe Checkout Error:", error);
       Swal.fire({
         icon: "error",
         title: "Payment Error",
-        text: "Something went wrong with Stripe checkout.",
+        text: "Something went wrong initiating the Stripe checkout session.",
+        background: SWAL_THEME.background,
+        color: SWAL_THEME.color,
+        confirmButtonColor: SWAL_THEME.confirmButtonColor,
       });
+    } finally {
+      setCheckoutLoading(false);
     }
   };
 
   if (loading) {
-    return <div className="p-6 text-center">Loading session details...</div>;
+    return (
+      <div className="max-w-3xl mx-auto py-8">
+        <LoadingSkeleton count={1} type="spinner" />
+      </div>
+    );
   }
 
   if (!session) return null;
 
+  const isFree = !session.registrationFee || session.registrationFee === 0 || session.registrationFee === "0";
+
   return (
-    <div className="max-w-3xl p-6 mx-auto">
+    <div className="max-w-3xl mx-auto space-y-6">
       <button
         onClick={() => navigate(-1)}
-        className="px-4 py-2 mb-4 text-indigo-800 bg-indigo-100 rounded"
+        className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-studify-surface border border-studify-border text-xs font-semibold text-studify-heading hover:bg-studify-bg transition-colors"
       >
-        ← Back to Sessions
+        <ArrowLeft size={14} />
+        <span>Back to Sessions</span>
       </button>
 
-      <h2 className="mb-4 text-3xl font-bold text-indigo-900">{session.title}</h2>
+      <div className="bg-studify-surface border border-studify-border rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-6 border-b border-studify-border">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5 mb-1">
+              <StatusBadge status={session.status || "open"}>
+                {session.status || "Active Session"}
+              </StatusBadge>
+              <span className="text-xs text-studify-muted">
+                Created by {session.creatorEmail || "Mentor"}
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-studify-heading leading-tight">
+              {session.title}
+            </h1>
+          </div>
 
-      <p><strong>Tutor:</strong> {session.tutorName || "N/A"}</p>
-      <p><strong>Description:</strong> {session.description || "N/A"}</p>
-      <p><strong>Fee:</strong> ${session.registrationFee}</p>
+          <div className="text-left sm:text-right bg-studify-bg sm:bg-transparent p-3 sm:p-0 rounded-xl sm:rounded-none">
+            <span className="text-xs uppercase tracking-wider font-semibold text-studify-muted block">
+              Registration Fee
+            </span>
+            <span className="text-2xl font-extrabold text-studify-primary">
+              {isFree ? "Free" : `$${session.registrationFee}`}
+            </span>
+          </div>
+        </div>
 
-      {session.registrationFee > 0 && (
-        <button
-          onClick={openPaymentModal}
-          className="px-4 py-2 mt-6 text-white bg-indigo-700 rounded hover:bg-indigo-800"
-        >
-          Pay & Confirm
-        </button>
-      )}
+        {/* Overview metadata */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-4 rounded-xl bg-studify-bg/60 border border-studify-border flex items-center gap-3">
+            <User size={18} className="text-studify-primary" />
+            <div>
+              <span className="text-[11px] uppercase tracking-wide text-studify-muted block">
+                Instructor
+              </span>
+              <span className="text-xs font-bold text-studify-heading">
+                {session.tutorName || "Unknown Tutor"}
+              </span>
+            </div>
+          </div>
 
-      <Dialog open={isPaymentOpen} as="div" className="relative z-10" onClose={closePaymentModal}>
-        <div className="fixed inset-0 bg-black/50" />
+          <div className="p-4 rounded-xl bg-studify-bg/60 border border-studify-border flex items-center gap-3">
+            <Clock size={18} className="text-studify-primary" />
+            <div>
+              <span className="text-[11px] uppercase tracking-wide text-studify-muted block">
+                Session Duration
+              </span>
+              <span className="text-xs font-bold text-studify-heading">
+                {session.duration || "N/A"}
+              </span>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-studify-bg/60 border border-studify-border flex items-center gap-3">
+            <Calendar size={18} className="text-studify-primary" />
+            <div>
+              <span className="text-[11px] uppercase tracking-wide text-studify-muted block">
+                Class Schedule
+              </span>
+              <span className="text-xs font-bold text-studify-heading">
+                {session.classStartTime
+                  ? new Date(session.classStartTime).toLocaleDateString()
+                  : "TBD"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Description */}
+        <div>
+          <h3 className="text-sm font-bold text-studify-heading uppercase tracking-wide mb-2">
+            Session Description
+          </h3>
+          <p className="text-sm text-studify-muted leading-relaxed whitespace-pre-wrap bg-studify-bg/30 p-4 rounded-xl border border-studify-border/60">
+            {session.description || "No detailed description provided for this session."}
+          </p>
+        </div>
+
+        {/* Action Button */}
+        <div className="pt-4 border-t border-studify-border flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs text-studify-muted">
+            <ShieldCheck size={16} className="text-studify-success" />
+            <span>Encrypted checkout powered by Stripe</span>
+          </div>
+
+          {!isFree && (
+            <button
+              onClick={openPaymentModal}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-studify-primary text-white text-sm font-bold hover:bg-studify-primary-dark transition-colors shadow-sm"
+            >
+              <CreditCard size={16} />
+              <span>Pay & Confirm (${session.registrationFee})</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Stripe Payment Confirmation Modal */}
+      <Dialog
+        open={isPaymentOpen}
+        as="div"
+        className="relative z-50"
+        onClose={closePaymentModal}
+      >
+        <div className="fixed inset-0 bg-studify-heading/40 backdrop-blur-xs transition-opacity" />
+
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <DialogPanel className="w-full max-w-md p-6 bg-white rounded shadow">
-            <DialogTitle className="text-lg font-bold">Confirm Payment</DialogTitle>
-            <p className="mt-2">You are paying for <strong>{session.title}</strong></p>
-            <p>Total: <strong>${session.registrationFee}</strong></p>
-            <div className="flex justify-end gap-4 mt-6">
+          <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-studify-surface p-6 text-left align-middle shadow-xl border border-studify-border transition-all space-y-4">
+            <DialogTitle className="text-lg font-bold text-studify-heading flex items-center gap-2">
+              <CreditCard size={20} className="text-studify-primary" />
+              <span>Confirm Enrollment Payment</span>
+            </DialogTitle>
+
+            <div className="p-4 rounded-xl bg-studify-bg/60 border border-studify-border space-y-2 text-xs text-studify-muted">
+              <div className="flex justify-between">
+                <span>Course:</span>
+                <strong className="text-studify-heading">{session.title}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span>Instructor:</span>
+                <span className="text-studify-heading">{session.tutorName}</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-studify-border text-sm">
+                <span className="font-bold text-studify-heading">Total Due:</span>
+                <span className="font-extrabold text-studify-primary">
+                  ${session.registrationFee}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-xs text-studify-muted leading-relaxed">
+              You will be redirected to the secure Stripe Checkout gateway to finalize your payment.
+            </p>
+
+            <div className="pt-3 flex items-center justify-end gap-3 border-t border-studify-border">
               <button
+                type="button"
                 onClick={closePaymentModal}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded"
+                disabled={checkoutLoading}
+                className="px-4 py-2 text-xs font-semibold text-studify-heading hover:bg-studify-bg rounded-xl border border-studify-border transition-colors"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleStripeCheckout}
-                className="px-4 py-2 text-white bg-indigo-700 rounded hover:bg-indigo-800"
+                disabled={checkoutLoading}
+                className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-studify-primary hover:bg-studify-primary-dark rounded-xl transition-colors shadow-xs disabled:opacity-50"
               >
-                Pay with Stripe
+                <span>{checkoutLoading ? "Redirecting…" : "Pay with Stripe"}</span>
               </button>
             </div>
           </DialogPanel>

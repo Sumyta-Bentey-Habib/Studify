@@ -2,100 +2,173 @@ import React, { useEffect, useState } from "react";
 import useAxios from "../../hooks/useAxios";
 import { useAuth } from "../../contexts/authcontext/AuthProvider";
 import Swal from "sweetalert2";
-import { FileText } from "lucide-react";
+import { SWAL_THEME } from "../../utils/utils";
+import PageHeader from "../../components/ui/PageHeader";
+import EmptyState from "../../components/ui/EmptyState";
+import LoadingSkeleton from "../../components/ui/LoadingSkeleton";
+import { FileText, Calendar, Trash2, PenLine, Image as ImageIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const ViewNotes = () => {
   const { user } = useAuth();
   const axios = useAxios();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (!user?.email) { setMessage("You must be logged in."); setLoading(false); return; }
+    if (!user?.email) {
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
     const fetchNotes = async () => {
       try {
-        const res = await axios.get(`/notes?userEmail=${encodeURIComponent(user.email)}`);
-        setNotes(res.data);
-        if (res.data.length === 0) setMessage("No notes found.");
-        else setMessage("");
+        const res = await axios.get(
+          `/notes?userEmail=${encodeURIComponent(user.email)}`
+        );
+        if (isMounted) setNotes(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
         console.error("Failed to fetch notes:", error);
-        setMessage("Failed to load notes.");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchNotes();
+
+    return () => {
+      isMounted = false;
+    };
   }, [axios, user]);
 
   const handleDelete = async (noteId) => {
     const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "This note will be permanently deleted.",
+      title: "Delete this note?",
+      text: "This note will be permanently removed from your collection.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#4f46e5",
-      cancelButtonColor: "#ef4444",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonColor: SWAL_THEME.cancelButtonColor,
+      cancelButtonColor: SWAL_THEME.confirmButtonColor,
+      confirmButtonText: "Yes, delete note",
+      cancelButtonText: "Cancel",
+      background: SWAL_THEME.background,
+      color: SWAL_THEME.color,
     });
+
     if (result.isConfirmed) {
       try {
         await axios.delete(`/notes/${noteId}`);
-        setNotes((prev) => prev.filter((n) => (n._id || n.insertedId) !== noteId));
-        Swal.fire({ icon: "success", title: "Deleted!", text: "Your note has been deleted.", confirmButtonColor: "#4f46e5" });
+        setNotes((prev) =>
+          prev.filter((n) => (n._id || n.insertedId) !== noteId)
+        );
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: "Note deleted successfully",
+          showConfirmButton: false,
+          timer: 2000,
+          background: SWAL_THEME.background,
+          color: SWAL_THEME.color,
+        });
       } catch (error) {
         console.error("Failed to delete note:", error);
-        Swal.fire({ icon: "error", title: "Error", text: "Failed to delete note.", confirmButtonColor: "#4f46e5" });
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "error",
+          title: "Failed to delete note",
+          showConfirmButton: false,
+          timer: 2000,
+        });
       }
     }
   };
 
-  if (loading)
-    return (
-      <div className="flex justify-center py-16">
-        <div className="h-8 w-8 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin" />
-      </div>
-    );
-
-  if (!user?.email)
-    return <p className="text-red-600 text-center py-10">Please log in to view your notes.</p>;
-
   return (
-    <div>
-      <h2 className="text-xl font-bold text-slate-800 mb-5">My Notes</h2>
-      {message && !notes.length && (
-        <div className="text-center py-16 text-slate-400">
-          <FileText size={40} className="mx-auto mb-3 opacity-30" />
-          <p>{message}</p>
-        </div>
-      )}
-      {notes.length > 0 && (
-        <ul className="space-y-4 max-w-2xl">
+    <div className="space-y-6">
+      <PageHeader
+        title="My Notes"
+        description="Review, search, and manage your private revision notes and formula sheets."
+      >
+        <Link
+          to="/dashboard/student/create-note"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-studify-primary text-white text-xs font-semibold hover:bg-studify-primary-dark transition-colors shadow-xs"
+        >
+          <PenLine size={14} />
+          <span>New Note</span>
+        </Link>
+      </PageHeader>
+
+      {loading ? (
+        <LoadingSkeleton count={3} type="card" />
+      ) : notes.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title="No notes created yet"
+          description="Start organizing your study materials by creating your first private note."
+          actionLabel="Create First Note"
+          actionLink="/dashboard/student/create-note"
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {notes.map((note) => {
             const noteId = note._id || note.insertedId;
             return (
-              <li key={noteId} className="bg-white rounded-2xl ring-1 ring-slate-100 shadow-sm overflow-hidden hover:shadow-md transition">
-                <div className="h-1 bg-gradient-to-r from-indigo-500 to-violet-400" />
-                <div className="p-5">
-                  <h3 className="text-base font-bold text-slate-800 mb-2">{note.title}</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap mb-4">{note.content}</p>
-                  <div className="flex items-center justify-between">
-                    <small className="text-xs text-slate-400">
-                      {new Date(note.createdAt).toLocaleString()}
-                    </small>
-                    <button
-                      onClick={() => handleDelete(noteId)}
-                      className="rounded-xl bg-red-50 text-red-600 ring-1 ring-red-200 px-4 py-1.5 text-sm font-semibold hover:bg-red-600 hover:text-white transition"
-                    >
-                      Delete
-                    </button>
+              <div
+                key={noteId}
+                className="bg-studify-surface rounded-2xl border border-studify-border p-6 shadow-sm hover:border-studify-primary/40 transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h3 className="text-base font-bold text-studify-heading leading-snug">
+                      {note.title}
+                    </h3>
                   </div>
+
+                  <p className="text-sm text-studify-muted leading-relaxed whitespace-pre-wrap mb-4">
+                    {note.content}
+                  </p>
+
+                  {note.imageUrl && (
+                    <div className="mb-4">
+                      <a
+                        href={note.imageUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs text-studify-primary hover:underline font-semibold bg-studify-bg px-2.5 py-1 rounded-lg border border-studify-border"
+                      >
+                        <ImageIcon size={13} />
+                        <span>View Attached Image</span>
+                      </a>
+                    </div>
+                  )}
                 </div>
-              </li>
+
+                <div className="pt-4 border-t border-studify-border flex items-center justify-between text-xs">
+                  <span className="text-studify-muted flex items-center gap-1">
+                    <Calendar size={12} />
+                    <span>
+                      {note.createdAt
+                        ? new Date(note.createdAt).toLocaleDateString("en-US", {
+                            dateStyle: "medium",
+                          })
+                        : "Recent"}
+                    </span>
+                  </span>
+
+                  <button
+                    onClick={() => handleDelete(noteId)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-studify-danger/10 text-studify-danger text-xs font-semibold hover:bg-studify-danger hover:text-white border border-studify-danger/20 transition-colors"
+                  >
+                    <Trash2 size={13} />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </div>
             );
           })}
-        </ul>
+        </div>
       )}
     </div>
   );

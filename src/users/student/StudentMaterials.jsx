@@ -1,130 +1,142 @@
 import React, { useEffect, useState } from "react";
 import useAxios from "../../hooks/useAxios";
 import { useAuth } from "../../contexts/authcontext/AuthProvider";
+import PageHeader from "../../components/ui/PageHeader";
+import EmptyState from "../../components/ui/EmptyState";
+import LoadingSkeleton from "../../components/ui/LoadingSkeleton";
+import { BookmarkCheck, ExternalLink, Image as ImageIcon, Calendar } from "lucide-react";
 
 const StudentMaterials = () => {
   const { user } = useAuth();
   const axios = useAxios();
   const [savedMaterials, setSavedMaterials] = useState([]);
-  const [message, setMessage] = useState("Loading saved materials...");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user?.email) {
-      setMessage("You must be logged in to see your saved materials.");
       setLoading(false);
       return;
     }
 
+    let isMounted = true;
     const fetchSavedMaterials = async () => {
       try {
         const res = await axios.get(
           `/student-materials?userEmail=${encodeURIComponent(user.email)}`
         );
-        setSavedMaterials(res.data);
-        setMessage(res.data.length === 0 ? "You have no saved materials yet." : "");
+        if (isMounted) setSavedMaterials(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("Failed to fetch saved materials:", err);
-        setMessage("Failed to load saved materials.");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchSavedMaterials();
+
+    return () => {
+      isMounted = false;
+    };
   }, [axios, user]);
 
-  if (loading)
-    return (
-      <p
-        className="p-4 text-center text-indigo-700"
-        style={{ backgroundColor: "#F3E8FF" }}
-      >
-        Loading...
-      </p>
-    );
-
-  if (!user?.email)
-    return (
-      <div className="p-4" style={{ backgroundColor: "#F3E8FF" }}>
-        <p className="text-red-600">You must be logged in to see your saved materials.</p>
-      </div>
-    );
-
   return (
-    <div className="p-4" style={{ backgroundColor: "#F3E8FF" }}>
-      <h2 className="mb-4 text-xl font-bold text-indigo-800">My Saved Materials</h2>
+    <div className="space-y-6">
+      <PageHeader
+        title="My Saved Materials"
+        description="Quickly access academic resources and slide decks you bookmarked for later study."
+      />
 
-      {message && (
-        <p
-          className={`mb-4 ${
-            message.includes("Failed") ? "text-red-600" : "text-indigo-700"
-          }`}
-        >
-          {message}
-        </p>
-      )}
-
-      {savedMaterials.length > 0 && (
-        <div className="space-y-4">
+      {loading ? (
+        <LoadingSkeleton count={3} type="card" />
+      ) : savedMaterials.length === 0 ? (
+        <EmptyState
+          icon={BookmarkCheck}
+          title="No saved materials yet"
+          description="Browse available materials across the platform and save the ones you need for revision."
+          actionLabel="Explore Study Materials"
+          actionLink="/dashboard/student/view-materials"
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {savedMaterials.map((material) => (
             <div
               key={material._id || material.materialId || Math.random()}
-              className="p-4 border border-indigo-300 rounded shadow"
-              style={{ backgroundColor: "#E6E6FA" }}
+              className="bg-studify-surface rounded-2xl border border-studify-border overflow-hidden shadow-sm hover:border-studify-primary/40 transition-all flex flex-col justify-between"
             >
-              <h3 className="mb-2 font-bold text-indigo-900">
-                Subject: {material.subjectName || "No Subject Name"}
-              </h3>
+              <div>
+                {material.imageUrl ? (
+                  <div className="h-40 bg-studify-bg relative overflow-hidden border-b border-studify-border">
+                    <img
+                      src={material.imageUrl}
+                      alt={material.subjectName || "Material"}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-24 bg-studify-bg/60 border-b border-studify-border flex items-center justify-center text-studify-muted">
+                    <BookmarkCheck size={28} strokeWidth={1.5} />
+                  </div>
+                )}
 
-              {material.imageUrl ? (
-                <div className="my-2">
-                  <img
-                    src={material.imageUrl}
-                    alt="Material"
-                    className="max-w-full rounded"
-                  />
-                  <a
-                    href={material.imageUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block mt-1 text-indigo-700 underline"
-                  >
-                    View Image
-                  </a>
+                <div className="p-5 space-y-3">
+                  <h3 className="text-base font-bold text-studify-heading leading-snug">
+                    {material.subjectName || "Saved Resource"}
+                  </h3>
+
+                  <div className="space-y-1.5 text-xs">
+                    {material.imageUrl && (
+                      <a
+                        href={material.imageUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-studify-primary hover:underline font-medium"
+                      >
+                        <ImageIcon size={13} />
+                        <span>View Attachment</span>
+                      </a>
+                    )}
+
+                    {material.driveLink && (
+                      <p>
+                        <a
+                          href={material.driveLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 text-studify-primary hover:underline font-medium"
+                        >
+                          <ExternalLink size={13} />
+                          <span>Google Drive Folder</span>
+                        </a>
+                      </p>
+                    )}
+
+                    {material.otherLink && (
+                      <p>
+                        <a
+                          href={material.otherLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 text-studify-primary hover:underline font-medium"
+                        >
+                          <ExternalLink size={13} />
+                          <span>External Link</span>
+                        </a>
+                      </p>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <p className="italic text-gray-500">No image available.</p>
-              )}
+              </div>
 
-              {material.driveLink ? (
-                <p>
-                  <a
-                    href={material.driveLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-indigo-700 underline"
-                  >
-                    Google Drive Link
-                  </a>
-                </p>
-              ) : (
-                <p className="italic text-gray-500">No Google Drive link.</p>
-              )}
-
-              {material.otherLink ? (
-                <p>
-                  <a
-                    href={material.otherLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-indigo-700 underline"
-                  >
-                    Other Link
-                  </a>
-                </p>
-              ) : (
-                <p className="italic text-gray-500">No other link.</p>
+              {material.savedAt && (
+                <div className="p-4 bg-studify-bg/40 border-t border-studify-border flex items-center justify-between text-xs text-studify-muted">
+                  <span className="flex items-center gap-1">
+                    <Calendar size={12} />
+                    <span>
+                      Saved {new Date(material.savedAt).toLocaleDateString()}
+                    </span>
+                  </span>
+                  <span className="text-studify-success font-semibold">Bookmarked</span>
+                </div>
               )}
             </div>
           ))}

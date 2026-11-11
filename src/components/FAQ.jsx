@@ -1,28 +1,26 @@
-"use client";
-
 import React, { useState } from "react";
-import { FAQ_BG_COLOR } from "../utils/utils";
+import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
     question: "How do I book a session?",
-    answer: "After logging in, browse available sessions and click 'Book'. Your booked sessions will appear under 'My Booked Sessions'.",
+    answer: "After logging in, browse available sessions and click 'Book'. Your booked sessions will appear under 'My Booked Sessions' in your student dashboard.",
   },
   {
     question: "Can I save study materials?",
-    answer: "Yes! You can save any material you find useful by clicking the 'Save Material' button. These materials are saved only for your account.",
+    answer: "Yes! You can save any material you find useful by clicking 'Save to Mine'. These materials are saved to your personal library under 'Saved Materials'.",
   },
   {
     question: "Are my notes private?",
-    answer: "Absolutely. Your notes are linked to your account and only you can view, edit, or delete them.",
+    answer: "Absolutely. Your notes are securely linked to your account and only you can view, edit, or delete them.",
   },
   {
     question: "How do I become a mentor?",
-    answer: "You can submit an upgrade request from your profile. Our admin team will review and approve or reject your request.",
+    answer: "You can submit an upgrade request from your student dashboard under 'Become a Mentor'. Our admin team will review and approve your application.",
   },
   {
     question: "Is my data secure?",
-    answer: "Yes, all actions require authentication with Firebase JWT. Your data is accessible only when you are logged in.",
+    answer: "Yes, all actions require authentication with Firebase JWT. Your data is accessible only when you are authorized and logged in.",
   },
 ];
 
@@ -34,21 +32,18 @@ const FAQ = () => {
   };
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-studify-surface">
       <div className="max-w-3xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12">
-          <span className="inline-block rounded-full bg-indigo-50 px-4 py-1.5 text-sm font-semibold text-indigo-600 ring-1 ring-indigo-100 mb-4">
-            💡 Got Questions?
+          <span className="inline-block rounded-full bg-studify-primary/10 px-4 py-1.5 text-xs font-bold text-studify-primary border border-studify-primary/20 mb-3">
+            Platform Help Center
           </span>
-          <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
-            Frequently Asked{" "}
-            <span className="bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
-              Questions
-            </span>
+          <h2 className="text-3xl font-extrabold text-studify-heading sm:text-4xl tracking-tight">
+            Frequently Asked Questions
           </h2>
-          <p className="mt-4 text-slate-500">
-            Everything you need to know about Studify. Can't find the answer? Reach out to us.
+          <p className="mt-3 text-sm text-studify-muted max-w-md mx-auto">
+            Everything you need to know about StudyFy. Have more questions? Reach out to our community support.
           </p>
         </div>
 
@@ -57,31 +52,31 @@ const FAQ = () => {
           {faqs.map((faq, idx) => (
             <div
               key={idx}
-              className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
+              className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
                 openIndex === idx
-                  ? "border-indigo-200 bg-indigo-50 shadow-sm"
-                  : "border-slate-100 bg-white hover:border-indigo-100"
+                  ? "border-studify-primary/40 bg-studify-bg/40 shadow-xs"
+                  : "border-studify-border bg-studify-surface hover:border-studify-primary/20"
               }`}
             >
               <button
-                className="w-full flex items-center justify-between px-6 py-5 text-left"
+                className="w-full flex items-center justify-between px-6 py-4.5 text-left"
                 onClick={() => toggleIndex(idx)}
               >
-                <span className={`text-base font-semibold transition-colors ${openIndex === idx ? "text-indigo-700" : "text-slate-800"}`}>
+                <span className="text-sm sm:text-base font-bold text-studify-heading">
                   {faq.question}
                 </span>
                 <span
-                  className={`ml-4 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold transition-all duration-300 ${
+                  className={`ml-4 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold transition-transform duration-200 ${
                     openIndex === idx
-                      ? "bg-indigo-600 text-white rotate-45"
-                      : "bg-slate-100 text-slate-500"
+                      ? "bg-studify-primary text-white rotate-180"
+                      : "bg-studify-bg text-studify-muted"
                   }`}
                 >
-                  +
+                  <ChevronDown size={14} />
                 </span>
               </button>
               {openIndex === idx && (
-                <p className="px-6 pb-5 text-sm leading-relaxed text-slate-600">
+                <p className="px-6 pb-5 text-xs sm:text-sm leading-relaxed text-studify-muted border-t border-studify-border/40 pt-3">
                   {faq.answer}
                 </p>
               )}
